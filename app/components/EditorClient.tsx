@@ -444,7 +444,7 @@ export default function EditorClient({ roomId }: EditorClientProps) {
         setLanguage(sharedLanguage)
       }
 
-    // Seed starter code for new rooms (owner only, ytext must be empty).
+      // Seed starter code for new rooms (owner only, ytext must be empty).
       if (isCurrentUserOwner) {
         const ytext = ydoc.getText(YJS_KEYS.MONACO_TEXT)
         if (ytext.length === 0) {
