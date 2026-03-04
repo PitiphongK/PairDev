@@ -248,7 +248,7 @@ export default function GitHubImportModal({
                         isDisabled={loading}
                         startContent={<ChevronLeft size={16} />}
                       >
-                        .. (Parent directory)
+                        ..
                       </Button>
                     )}
                     {files.map((file) => (

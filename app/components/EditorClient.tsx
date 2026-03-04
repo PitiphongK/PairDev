@@ -121,6 +121,7 @@ export default function EditorClient({ roomId }: EditorClientProps) {
   const panelsMapRef = useRef<Y.Map<unknown> | null>(null)
   const analyticsMapRef = useRef<Y.Map<unknown> | null>(null)
   const updateUsersRef = useRef<(() => void) | undefined>(undefined)
+  const leaveConfirmedRef = useRef(false)
 
   // Keep editorRef.current pointing to whichever editor layout is visible.
   // There are two separate <Editor> instances (desktop + mobile) but only one
@@ -852,6 +853,46 @@ export default function EditorClient({ roomId }: EditorClientProps) {
       window.removeEventListener('beforeunload', handleOwnerExit)
     }
   }, [isOwner])
+
+  /** Warn before leaving the room page (refresh/close/back/navigation). */
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (leaveConfirmedRef.current) return
+      event.preventDefault()
+      // Most modern browsers ignore custom text and show a built-in message.
+      event.returnValue = ''
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [])
+
+  /** Confirm when user presses browser Back while still inside the app (popstate). */
+  useEffect(() => {
+    // Create a guard entry so first Back stays on this page and lets us confirm.
+    window.history.pushState({ codelinkGuard: true }, '', window.location.href)
+
+    const handlePopState = () => {
+      if (leaveConfirmedRef.current) return
+
+      const ok = window.confirm('Are you sure you want to leave? Your edits may not be saved.')
+      if (ok) {
+        leaveConfirmedRef.current = true
+        window.history.back()
+        return
+      }
+
+      // Stay in this page by restoring the guard entry.
+      window.history.pushState({ codelinkGuard: true }, '', window.location.href)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [])
 
   // ============================================================================
   // Handlers - Editor & Session Management

@@ -32,6 +32,9 @@ function getCopy(role: Role) {
           <div>
             Your role is to structure the code, write the loops, function, and condition that implement whatever the navigator is saying
           </div>
+          <div>
+            There can only be one driver at a time.
+          </div>
         </div>
       ),
     }

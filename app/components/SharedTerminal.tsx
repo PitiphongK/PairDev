@@ -102,7 +102,7 @@ const SharedTerminal = forwardRef<SharedTerminalHandle, Props>(
               error?: string
             }
 
-            if (!res.ok || data.error) {
+            if (!res.ok) {
               const msg = data.error ?? res.statusText
               writeBoth(`\r\n[error: ${msg}]\r\n`)
               socket.emit('terminal:exit-broadcast', { roomId, exitCode: 1 })
@@ -110,10 +110,12 @@ const SharedTerminal = forwardRef<SharedTerminalHandle, Props>(
               return
             }
 
+            // Glot returns stdout, stderr, and error together even on runtime failures.
             if (data.stdout) writeBoth(data.stdout)
-            if (data.stderr) writeBoth(data.stderr)
+            if (data.stderr) writeBoth(`\x1b[31m${data.stderr}\x1b[0m`)
+            if (data.error) writeBoth(`\x1b[31m${data.error}\x1b[0m`)
 
-            const exitCode = data.stderr ? 1 : 0
+            const exitCode = data.stderr || data.error ? 1 : 0
             socket.emit('terminal:exit-broadcast', { roomId, exitCode })
             termRef.current?.write(`\r\n[exited with code ${exitCode}]\r\n`)
           } catch (err: unknown) {
