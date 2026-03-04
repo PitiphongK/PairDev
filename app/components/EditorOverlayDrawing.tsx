@@ -20,7 +20,7 @@ export default function EditorOverlayDrawing({
 }: EditorOverlayDrawingProps) {
   return (
     <div
-      className={`absolute inset-0 z-30 transition-opacity duration-200 ${active ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
+      className={`absolute inset-0 z-30 ${active ? 'pointer-events-auto' : 'pointer-events-none'}`}
     >
       <DrawingBoard
         ydoc={ydoc ?? null}
@@ -29,6 +29,7 @@ export default function EditorOverlayDrawing({
         backgroundColor="transparent"
         className="h-full w-full bg-transparent"
         strokesArrayName="overlayStrokes"
+        showToolbar={active}
       />
     </div>
   )

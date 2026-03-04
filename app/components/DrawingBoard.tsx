@@ -28,6 +28,7 @@ interface DrawingBoardProps {
   backgroundColor?: string
   className?: string
   strokesArrayName?: string
+  showToolbar?: boolean
 }
 
 type ColorType = '#000000' | '#ef4444' | '#22c55e' | '#3b82f6' | '#eab308' | '#a855f7'
@@ -90,7 +91,7 @@ const ToolbarControls = ({
         <Slider
           size="sm"
           step={1}
-          maxValue={50}
+          maxValue={15}
           minValue={1}
           aria-label="Brush Size"
           value={brushSize}
@@ -170,35 +171,28 @@ const ToolbarControls = ({
 
 export const DrawingToolbar = (props: DrawingToolbarProps) => {
   return (
-    <>
-      <div className="hidden md:flex absolute top-4 right-4 z-50 bg-surface-primary/80 backdrop-blur-md shadow-lg border border-border-subtle rounded-xl">
-        <ToolbarControls {...props} />
-      </div>
-
-      <div className="md:hidden absolute top-4 right-4 z-50">
-        <Popover placement="left-start" offset={10} showArrow>
-          <PopoverTrigger>
-            <Button
-              isIconOnly
-              color="primary"
-              variant="shadow"
-              size="lg"
-              className="rounded-full"
-              aria-label="Open Drawing Tools"
-            >
-              <Palette size={24} />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="p-0">
-            <ToolbarControls {...props} />
-          </PopoverContent>
-        </Popover>
-      </div>
-    </>
+    <div className="absolute top-3 right-3 z-50">
+      <Popover placement="left-start" offset={10}>
+        <PopoverTrigger>
+          <Button
+            isIconOnly
+            color="default"
+            size="sm"
+            className="rounded-full"
+            aria-label="Open Drawing Tools"
+          >
+            <Palette size={18} />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="p-0">
+          <ToolbarControls {...props} />
+        </PopoverContent>
+      </Popover>
+    </div>
   )
 }
 
-function DrawingBoard({ ydoc, tool, onToolChange, backgroundColor, className, strokesArrayName = 'strokes' }: DrawingBoardProps) {
+function DrawingBoard({ ydoc, tool, onToolChange, backgroundColor, className, strokesArrayName = 'strokes', showToolbar = true }: DrawingBoardProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const isDrawingRef = useRef(false)
   const isErasingRef = useRef(false)
@@ -471,7 +465,7 @@ function DrawingBoard({ ydoc, tool, onToolChange, backgroundColor, className, st
 
   return (
     <div className={containerClassName}>
-      <DrawingToolbar
+      {showToolbar && <DrawingToolbar
         selectedTool={tool}
         onToolChange={(nextTool) => onToolChange?.(nextTool)}
         selectedColor={selectedColor}
@@ -481,7 +475,7 @@ function DrawingBoard({ ydoc, tool, onToolChange, backgroundColor, className, st
         onClear={handleClear}
         onExportPng={() => handleExport('png')}
         onExportJpg={() => handleExport('jpg')}
-      />
+      />}
       <svg
         ref={svgRef}
         onPointerDown={handlePointerDown}
