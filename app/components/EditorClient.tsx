@@ -230,7 +230,8 @@ export default function EditorClient({ roomId }: EditorClientProps) {
     const ydoc = ydocRef.current
     if (ydoc) {
       const ytext = ydoc.getText(YJS_KEYS.MONACO_TEXT)
-      const starter = LANGUAGE_STARTER_CODE[next] ?? ''
+      // Always normalise to LF so Windows and Mac stay in sync
+      const starter = (LANGUAGE_STARTER_CODE[next] ?? '').replace(/\r\n/g, '\n')
       ydoc.transact(() => {
         ytext.delete(0, ytext.length)
         ytext.insert(0, starter)
@@ -443,12 +444,13 @@ export default function EditorClient({ roomId }: EditorClientProps) {
         setLanguage(sharedLanguage)
       }
 
-      // Seed starter code for new rooms (owner only, ytext must be empty).
+    // Seed starter code for new rooms (owner only, ytext must be empty).
       if (isCurrentUserOwner) {
         const ytext = ydoc.getText(YJS_KEYS.MONACO_TEXT)
         if (ytext.length === 0) {
           const lang = isValidLanguage(sharedLanguage) ? sharedLanguage : languageRef.current
-          const starter = LANGUAGE_STARTER_CODE[lang] ?? ''
+          // Normalise to LF so Windows clients don't desync on first load
+          const starter = (LANGUAGE_STARTER_CODE[lang] ?? '').replace(/\r\n/g, '\n')
           if (starter) ytext.insert(0, starter)
         }
       }
@@ -887,6 +889,16 @@ export default function EditorClient({ roomId }: EditorClientProps) {
     const provider = providerRef.current!
     const ytext = ydoc.getText(YJS_KEYS.MONACO_TEXT)
 
+    // Normalise any CRLF already in the shared Y.Text before binding.
+    // This handles the case where a Windows client seeded the document first.
+    const raw = ytext.toString()
+    if (raw.includes('\r\n')) {
+      ydoc.transact(() => {
+        ytext.delete(0, ytext.length)
+        ytext.insert(0, raw.replace(/\r\n/g, '\n'))
+      })
+    }
+
     // Dynamically import y-monaco and create the binding.
     // Destroy any previous binding first so only one is ever active at a time.
     const { MonacoBinding } = await import('y-monaco')
@@ -896,7 +908,16 @@ export default function EditorClient({ roomId }: EditorClientProps) {
 
     const model = editor.getModel()
     if (model) {
+      // Force Monaco to use LF so it never writes \r\n into the Yjs doc.
+      model.setEOL(0 /* EndOfLineSequence.LF */)
+
       bindingRef.current = new MonacoBinding(ytext, model, new Set([editor]), provider.awareness)
+
+      // After binding, patch any CRLF Monaco may have re-introduced into the model.
+      const content = model.getValue()
+      if (content.includes('\r\n')) {
+        model.setValue(content.replace(/\r\n/g, '\n'))
+      }
     }
 
     // Apply read-only immediately based on current role.
