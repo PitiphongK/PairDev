@@ -171,31 +171,24 @@ const ToolbarControls = ({
 
 export const DrawingToolbar = (props: DrawingToolbarProps) => {
   return (
-    <>
-      <div className="hidden md:flex absolute top-4 right-4 z-50 bg-surface-primary/80 backdrop-blur-md shadow-lg border border-border-subtle rounded-xl">
-        <ToolbarControls {...props} />
-      </div>
-
-      <div className="md:hidden absolute top-4 right-4 z-50">
-        <Popover placement="left-start" offset={10} showArrow>
-          <PopoverTrigger>
-            <Button
-              isIconOnly
-              color="primary"
-              variant="shadow"
-              size="lg"
-              className="rounded-full"
-              aria-label="Open Drawing Tools"
-            >
-              <Palette size={24} />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="p-0">
-            <ToolbarControls {...props} />
-          </PopoverContent>
-        </Popover>
-      </div>
-    </>
+    <div className="absolute top-3 right-3 z-50">
+      <Popover placement="left-start" offset={10}>
+        <PopoverTrigger>
+          <Button
+            isIconOnly
+            color="default"
+            size="sm"
+            className="rounded-full"
+            aria-label="Open Drawing Tools"
+          >
+            <Palette size={18} />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="p-0">
+          <ToolbarControls {...props} />
+        </PopoverContent>
+      </Popover>
+    </div>
   )
 }
 

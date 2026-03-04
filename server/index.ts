@@ -6,8 +6,12 @@ import { TerminalManager } from './terminal'
 
 const app = express()
 const server = http.createServer(app)
+const PORT = process.env.PORT || 4000
 const io = new Server(server, {
-  cors: { origin: ['http://localhost:3000'], credentials: true },
+  cors: {
+    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000'],
+    credentials: true,
+  },
 })
 
 const terminalManager = new TerminalManager(io)
@@ -34,7 +38,6 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('room:message', { id: socket.id, text })
   })
 
-  // Shared terminal (PTY) per room.
   socket.on('terminal:join', (roomId, opts) => {
     terminalManager.join(socket, roomId, opts)
   })
@@ -43,9 +46,13 @@ io.on('connection', (socket) => {
     terminalManager.leave(socket, roomId)
   })
 
-  // Output-only shared runner.
-  socket.on('terminal:run', (payload) => {
-    void terminalManager.run(socket, payload)
+  // Relay output from the driver to all peers (exclude sender — they already wrote locally).
+  socket.on('terminal:broadcast', ({ roomId, data }: { roomId: string; data: string }) => {
+    terminalManager.writeToRoom(roomId, data, socket.id)
+  })
+
+  socket.on('terminal:exit-broadcast', ({ roomId, exitCode }: { roomId: string; exitCode: number }) => {
+    socket.to(roomId).emit('terminal:exit', { exitCode })
   })
 
   socket.on('terminal:resize', ({ roomId, cols, rows }) => {
@@ -58,4 +65,4 @@ io.on('connection', (socket) => {
   })
 })
 
-server.listen(4000, () => console.log('Socket.IO on :4000'))
+server.listen(PORT, () => console.log(`Socket.IO Terminal Server on :${PORT}`))

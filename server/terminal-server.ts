@@ -46,13 +46,13 @@ io.on('connection', (socket) => {
     terminalManager.leave(socket, roomId)
   })
 
-  // Relay output from the driver to all peers in the room.
+  // Relay output from the driver to all peers in the room (exclude sender — they already wrote locally).
   socket.on('terminal:broadcast', ({ roomId, data }: { roomId: string; data: string }) => {
-    terminalManager.writeToRoom(roomId, data)
+    terminalManager.writeToRoom(roomId, data, socket.id)
   })
 
   socket.on('terminal:exit-broadcast', ({ roomId, exitCode }: { roomId: string; exitCode: number }) => {
-    io.to(roomId).emit('terminal:exit', { exitCode })
+    socket.to(roomId).emit('terminal:exit', { exitCode })
   })
 
   socket.on('terminal:resize', ({ roomId, cols, rows }) => {

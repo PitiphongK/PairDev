@@ -92,7 +92,7 @@ export class TerminalManager {
   }
 
   /** Write data to all clients in a room and buffer it for late joiners. */
-  writeToRoom(roomId: string, data: string) {
+  writeToRoom(roomId: string, data: string, excludeSocketId?: string) {
     const session = this.sessions.get(roomId)
     if (session) {
       session.buffer += data
@@ -100,7 +100,10 @@ export class TerminalManager {
         session.buffer = session.buffer.slice(session.buffer.length - this.maxBufferChars)
       }
     }
-    this.io.to(roomId).emit('terminal:data', data)
+    const target = excludeSocketId
+      ? this.io.to(roomId).except(excludeSocketId)
+      : this.io.to(roomId)
+    target.emit('terminal:data', data)
   }
 
   private getOrCreate(roomId: string, options?: JoinOptions) {
