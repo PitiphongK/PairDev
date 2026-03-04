@@ -28,6 +28,7 @@ interface DrawingBoardProps {
   backgroundColor?: string
   className?: string
   strokesArrayName?: string
+  showToolbar?: boolean
 }
 
 type ColorType = '#000000' | '#ef4444' | '#22c55e' | '#3b82f6' | '#eab308' | '#a855f7'
@@ -90,7 +91,7 @@ const ToolbarControls = ({
         <Slider
           size="sm"
           step={1}
-          maxValue={50}
+          maxValue={15}
           minValue={1}
           aria-label="Brush Size"
           value={brushSize}
@@ -198,7 +199,7 @@ export const DrawingToolbar = (props: DrawingToolbarProps) => {
   )
 }
 
-function DrawingBoard({ ydoc, tool, onToolChange, backgroundColor, className, strokesArrayName = 'strokes' }: DrawingBoardProps) {
+function DrawingBoard({ ydoc, tool, onToolChange, backgroundColor, className, strokesArrayName = 'strokes', showToolbar = true }: DrawingBoardProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const isDrawingRef = useRef(false)
   const isErasingRef = useRef(false)
@@ -471,7 +472,7 @@ function DrawingBoard({ ydoc, tool, onToolChange, backgroundColor, className, st
 
   return (
     <div className={containerClassName}>
-      <DrawingToolbar
+      {showToolbar && <DrawingToolbar
         selectedTool={tool}
         onToolChange={(nextTool) => onToolChange?.(nextTool)}
         selectedColor={selectedColor}
@@ -481,7 +482,7 @@ function DrawingBoard({ ydoc, tool, onToolChange, backgroundColor, className, st
         onClear={handleClear}
         onExportPng={() => handleExport('png')}
         onExportJpg={() => handleExport('jpg')}
-      />
+      />}
       <svg
         ref={svgRef}
         onPointerDown={handlePointerDown}
