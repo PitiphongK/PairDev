@@ -122,6 +122,8 @@ export default function EditorClient({ roomId }: EditorClientProps) {
   const analyticsMapRef = useRef<Y.Map<unknown> | null>(null)
   const updateUsersRef = useRef<(() => void) | undefined>(undefined)
   const leaveConfirmedRef = useRef(false)
+  /** Holds the single active MonacoBinding — destroyed and recreated on layout switch. */
+  const bindingRef = useRef<{ destroy(): void } | null>(null)
 
   // Keep editorRef.current pointing to whichever editor layout is visible.
   // There are two separate <Editor> instances (desktop + mobile) but only one
@@ -222,19 +224,17 @@ export default function EditorClient({ roomId }: EditorClientProps) {
     languageRef.current = next
     setLanguage(next)
     roomMapRef.current?.set(ROOM_MAP_KEYS.LANGUAGE, next)
-    // Replace editor content with starter code via Monaco's own edit API.
-    // Going through executeEdits ensures the y-monaco binding picks it up
-    // cleanly without fighting direct Y.Text manipulation.
-    const editor = editorRef.current
-    const model = editor?.getModel()
-    if (editor && model) {
+    // Write the starter code directly into Y.Text so the change propagates
+    // to all peers via Yjs, rather than only updating the local Monaco model
+    // with executeEdits (which the binding can't reliably broadcast).
+    const ydoc = ydocRef.current
+    if (ydoc) {
+      const ytext = ydoc.getText(YJS_KEYS.MONACO_TEXT)
       const starter = LANGUAGE_STARTER_CODE[next] ?? ''
-      editor.executeEdits('language-change', [{
-        range: model.getFullModelRange(),
-        text: starter,
-        forceMoveMarkers: true,
-      }])
-      editor.setPosition({ lineNumber: 1, column: 1 })
+      ydoc.transact(() => {
+        ytext.delete(0, ytext.length)
+        ytext.insert(0, starter)
+      })
     }
   }, [])
 
@@ -912,20 +912,31 @@ export default function EditorClient({ roomId }: EditorClientProps) {
 
     // Only make this editor the "active" one if its layout is currently visible.
     const isDesktop = window.matchMedia('(min-width: 768px)').matches
-    if ((isDesktop && !isMobile) || (!isDesktop && isMobile)) {
-      editorRef.current = editor
+    const isVisible = (isDesktop && !isMobile) || (!isDesktop && isMobile)
+
+    if (!isVisible) {
+      // This layout is hidden — don't bind Yjs to it. If it later becomes
+      // visible the resize observer in useEffect will call mountEditor again.
+      editor.updateOptions({ readOnly: myRoleRef.current === 'navigator' })
+      return
     }
+
+    editorRef.current = editor
 
     const ydoc = ydocRef.current!
     const provider = providerRef.current!
     const ytext = ydoc.getText(YJS_KEYS.MONACO_TEXT)
 
-    // Dynamically import y-monaco and create the binding
+    // Dynamically import y-monaco and create the binding.
+    // Destroy any previous binding first so only one is ever active at a time.
     const { MonacoBinding } = await import('y-monaco')
+
+    bindingRef.current?.destroy()
+    bindingRef.current = null
 
     const model = editor.getModel()
     if (model) {
-      new MonacoBinding(ytext, model, new Set([editor]), provider.awareness)
+      bindingRef.current = new MonacoBinding(ytext, model, new Set([editor]), provider.awareness)
     }
 
     // Apply read-only immediately based on current role.
