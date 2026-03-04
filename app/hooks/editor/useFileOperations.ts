@@ -10,12 +10,18 @@ import { Languages, languageExtensions} from '@/app/interfaces/languages'
 interface UseFileOperationsOptions {
   /** Reference to the Monaco editor instance */
   editorRef: React.RefObject<import('monaco-editor').editor.IStandaloneCodeEditor | null>
+  /** Reference to the Yjs document for synced content writes */
+  ydocRef: React.RefObject<import('yjs').Doc | null>
+  /** Key used to get the shared Y.Text from the Yjs doc */
+  ytextKey: string
   /** Current language for file extension */
   language: Languages
   /** Room ID for file naming */
   roomId: string
-  /** Optional callback to update language when importing a file */
-  onLanguageChange?: (language: Languages) => void
+  /** Optional callback to update language when importing a file.
+   *  Receives (language, skipContentReset) — pass true to avoid
+   *  overwriting the just-imported content with starter code. */
+  onLanguageChange?: (language: Languages, skipContentReset: boolean) => void
 }
 
 interface UseFileOperationsReturn {
@@ -32,6 +38,8 @@ interface UseFileOperationsReturn {
  */
 export function useFileOperations({
   editorRef,
+  ydocRef,
+  ytextKey,
   language,
   roomId,
   onLanguageChange,
@@ -73,20 +81,33 @@ export function useFileOperations({
   const handleFileImport = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0]
-      if (file && editorRef.current) {
-        const detected = getLanguageFromFilename(file.name)
-        if (detected && detected !== language) {
-          onLanguageChange?.(detected)
-        }
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          const content = e.target?.result as string
+      if (!file) return
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const raw = e.target?.result as string
+        // Normalise line endings to LF before writing into Y.Text
+        const content = raw.replace(/\r\n/g, '\n')
+        const ydoc = ydocRef.current
+        if (ydoc) {
+          const ytext = ydoc.getText(ytextKey)
+          ydoc.transact(() => {
+            ytext.delete(0, ytext.length)
+            ytext.insert(0, content)
+          })
+        } else {
+          // Fallback if Yjs isn't ready yet
           editorRef.current?.setValue(content)
         }
-        reader.readAsText(file)
+        // Switch language metadata AFTER writing content, with skipContentReset=true
+        // so handleLanguageChange doesn't overwrite the imported content with starter code
+        const detected = getLanguageFromFilename(file.name)
+        if (detected && detected !== language) {
+          onLanguageChange?.(detected, true)
+        }
       }
+      reader.readAsText(file)
     },
-    [editorRef, language, onLanguageChange]
+    [editorRef, ydocRef, ytextKey, language, onLanguageChange]
   )
 
   // Import content from GitHub
@@ -106,12 +127,26 @@ export function useFileOperations({
 
         const data = await response.json()
 
-        if (data.type === 'file' && editorRef.current) {
-          editorRef.current.setValue(data.content)
+        if (data.type === 'file') {
+          // Normalise line endings then write directly into Y.Text so all
+          // peers receive the imported content rather than just the local editor.
+          const content = (data.content as string).replace(/\r\n/g, '\n')
+          const ydoc = ydocRef.current
+          if (ydoc) {
+            const ytext = ydoc.getText(ytextKey)
+            ydoc.transact(() => {
+              ytext.delete(0, ytext.length)
+              ytext.insert(0, content)
+            })
+          } else {
+            editorRef.current?.setValue(content)
+          }
 
+          // Switch language metadata AFTER writing content, with skipContentReset=true
+          // so handleLanguageChange doesn't overwrite the imported content with starter code
           const detected = getLanguageFromFilename(data.filename || filePath)
           if (detected && detected !== language) {
-            onLanguageChange?.(detected)
+            onLanguageChange?.(detected, true)
           }
 
           addToast({
@@ -135,7 +170,7 @@ export function useFileOperations({
         throw error
       }
     },
-    [editorRef, language, onLanguageChange]
+    [editorRef, ydocRef, ytextKey, language, onLanguageChange]
   )
 
   return {

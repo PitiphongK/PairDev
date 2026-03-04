@@ -217,13 +217,18 @@ export default function EditorClient({ roomId }: EditorClientProps) {
     return token
   }, [getOwnerTokenStorageKey])
 
-  /** Sync language to room map (driver only) */
-  const handleLanguageChange = useCallback((next: Languages) => {
+  /** Sync language to room map (driver only).
+   *  Pass skipContentReset=true when content has already been set (e.g. after
+   *  a file/GitHub import) to avoid overwriting it with the starter code. */
+  const handleLanguageChange = useCallback((next: Languages, skipContentReset = false) => {
     if (next === languageRef.current) return
     if (myRoleRef.current === 'navigator') return
     languageRef.current = next
     setLanguage(next)
     roomMapRef.current?.set(ROOM_MAP_KEYS.LANGUAGE, next)
+    // Skip the Y.Text reset when the caller has already written content
+    // (e.g. file import or GitHub import) — resetting here would overwrite it.
+    if (skipContentReset) return
     // Write the starter code directly into Y.Text so the change propagates
     // to all peers via Yjs, rather than only updating the local Monaco model
     // with executeEdits (which the binding can't reliably broadcast).
@@ -248,6 +253,8 @@ export default function EditorClient({ roomId }: EditorClientProps) {
     handleGitHubImport,
   } = useFileOperations({
     editorRef,
+    ydocRef,
+    ytextKey: YJS_KEYS.MONACO_TEXT,
     language,
     roomId,
     onLanguageChange: handleLanguageChange,
