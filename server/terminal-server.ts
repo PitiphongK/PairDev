@@ -46,9 +46,13 @@ io.on('connection', (socket) => {
     terminalManager.leave(socket, roomId)
   })
 
-  // Output-only shared runner.
-  socket.on('terminal:run', (payload) => {
-    void terminalManager.run(socket, payload)
+  // Relay output from the driver to all peers in the room.
+  socket.on('terminal:broadcast', ({ roomId, data }: { roomId: string; data: string }) => {
+    terminalManager.writeToRoom(roomId, data)
+  })
+
+  socket.on('terminal:exit-broadcast', ({ roomId, exitCode }: { roomId: string; exitCode: number }) => {
+    io.to(roomId).emit('terminal:exit', { exitCode })
   })
 
   socket.on('terminal:resize', ({ roomId, cols, rows }) => {

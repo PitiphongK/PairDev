@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Panel,
   PanelGroup,
@@ -33,6 +33,7 @@ import Toolbar from '@/app/components/Toolbar'
 import {
   DEFAULT_HORIZONTAL_LAYOUT,
   DEFAULT_VERTICAL_LAYOUT,
+  LANGUAGE_STARTER_CODE,
   MONACO_EDITOR_OPTIONS,
   PANELS_MAP_KEYS,
   ROOM_MAP_KEYS,
@@ -145,7 +146,15 @@ export default function EditorClient({ roomId }: EditorClientProps) {
   const [followEnabled, setFollowEnabled] = useState(false)
   const handleTargetGone = useCallback(() => setFollowing(null), [])
   const [running, setRunning] = useState(false)
-  const terminalRef = useRef<SharedTerminalHandle | null>(null)
+  const desktopTerminalRef = useRef<SharedTerminalHandle | null>(null)
+  const mobileTerminalRef = useRef<SharedTerminalHandle | null>(null)
+  /** Always points to whichever terminal layout is currently visible. */
+  const terminalRef = useMemo(() => ({
+    get current(): SharedTerminalHandle | null {
+      const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches
+      return isDesktop ? desktopTerminalRef.current : mobileTerminalRef.current
+    },
+  }), [])
 
   // ============================================================================
   // State - Modals
@@ -212,6 +221,20 @@ export default function EditorClient({ roomId }: EditorClientProps) {
     languageRef.current = next
     setLanguage(next)
     roomMapRef.current?.set(ROOM_MAP_KEYS.LANGUAGE, next)
+    // Replace editor content with starter code via Monaco's own edit API.
+    // Going through executeEdits ensures the y-monaco binding picks it up
+    // cleanly without fighting direct Y.Text manipulation.
+    const editor = editorRef.current
+    const model = editor?.getModel()
+    if (editor && model) {
+      const starter = LANGUAGE_STARTER_CODE[next] ?? ''
+      editor.executeEdits('language-change', [{
+        range: model.getFullModelRange(),
+        text: starter,
+        forceMoveMarkers: true,
+      }])
+      editor.setPosition({ lineNumber: 1, column: 1 })
+    }
   }, [])
 
   // ============================================================================
@@ -417,6 +440,16 @@ export default function EditorClient({ roomId }: EditorClientProps) {
       } else if (sharedLanguage !== languageRef.current) {
         languageRef.current = sharedLanguage
         setLanguage(sharedLanguage)
+      }
+
+      // Seed starter code for new rooms (owner only, ytext must be empty).
+      if (isCurrentUserOwner) {
+        const ytext = ydoc.getText(YJS_KEYS.MONACO_TEXT)
+        if (ytext.length === 0) {
+          const lang = isValidLanguage(sharedLanguage) ? sharedLanguage : languageRef.current
+          const starter = LANGUAGE_STARTER_CODE[lang] ?? ''
+          if (starter) ytext.insert(0, starter)
+        }
       }
 
       // Start the local timer with the correct initial role
@@ -1007,8 +1040,7 @@ export default function EditorClient({ roomId }: EditorClientProps) {
     const code = editorRef.current.getValue()
     setRunning(true)
     try {
-      terminalRef.current?.clear()
-      terminalRef.current?.run({ language, code })
+      await terminalRef.current?.run({ language, code })
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err)
       terminalRef.current?.write(`\r\n[run error: ${message}]\r\n`)
@@ -1395,7 +1427,7 @@ export default function EditorClient({ roomId }: EditorClientProps) {
                   minSize={10}
                   className="bg-surface-primary flex flex-col"
                 >
-                  <TerminalPanel ref={terminalRef} roomId={roomId} />
+                  <TerminalPanel ref={desktopTerminalRef} roomId={roomId} />
                 </Panel>
               </PanelGroup>
             </Panel>
@@ -1438,7 +1470,7 @@ export default function EditorClient({ roomId }: EditorClientProps) {
             </div>
           </div>
           <div className="h-48 bg-surface-primary border-t border-border-strong">
-            <TerminalPanel ref={terminalRef} roomId={roomId} />
+            <TerminalPanel ref={mobileTerminalRef} roomId={roomId} />
           </div>
           <div className="h-64 border-t border-border-strong">
             <DrawingBoard

@@ -18,7 +18,7 @@ import { type Socket, io } from 'socket.io-client'
 export type SharedTerminalHandle = {
   write: (data: string) => void
   clear: () => void
-  run: (args: { language: string; code: string }) => void
+  run: (args: { language: string; code: string }) => Promise<void>
 }
 
 type Props = {
@@ -74,10 +74,54 @@ const SharedTerminal = forwardRef<SharedTerminalHandle, Props>(
         clear: () => {
           termRef.current?.write(clearSequence)
         },
-        run: ({ language, code }) => {
+        run: async ({ language, code }) => {
           const socket = socketRef.current
-          if (!socket) return
-          socket.emit('terminal:run', { roomId, language, code })
+          if (!socket?.connected) return
+
+          const writeBoth = (data: string) => {
+            // Write directly to local terminal immediately.
+            termRef.current?.write(data)
+            // Broadcast to all other peers in the room.
+            socket.emit('terminal:broadcast', { roomId, data })
+          }
+
+          // Clear + status line for everyone.
+          writeBoth('\x1bc\x1b[2J\x1b[H')
+          writeBoth(`Running ${language}...\r\n`)
+
+          try {
+            const res = await fetch('/api/run', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ language, code }),
+            })
+
+            const data = await res.json() as {
+              stdout?: string
+              stderr?: string
+              error?: string
+            }
+
+            if (!res.ok || data.error) {
+              const msg = data.error ?? res.statusText
+              writeBoth(`\r\n[error: ${msg}]\r\n`)
+              socket.emit('terminal:exit-broadcast', { roomId, exitCode: 1 })
+              termRef.current?.write('\r\n[exited with code 1]\r\n')
+              return
+            }
+
+            if (data.stdout) writeBoth(data.stdout)
+            if (data.stderr) writeBoth(data.stderr)
+
+            const exitCode = data.stderr ? 1 : 0
+            socket.emit('terminal:exit-broadcast', { roomId, exitCode })
+            termRef.current?.write(`\r\n[exited with code ${exitCode}]\r\n`)
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err)
+            writeBoth(`\r\n[error: ${msg}]\r\n`)
+            socket.emit('terminal:exit-broadcast', { roomId, exitCode: 1 })
+            termRef.current?.write('\r\n[exited with code 1]\r\n')
+          }
         },
       }),
       [clearSequence, roomId]

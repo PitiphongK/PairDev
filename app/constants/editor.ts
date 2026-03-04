@@ -79,9 +79,25 @@ export const PANELS_MAP_KEYS = {
 // Editor Defaults
 // ============================================================================
 
-/** Default code template for new rooms */
-export const getDefaultEditorContent = (roomId: string): string =>
-  `// Room: ${roomId}\nfunction add(a, b) { return a + b }\n`
+/** Per-language hello world starter code */
+export const LANGUAGE_STARTER_CODE: Record<string, string> = {
+  javascript: `console.log('Hello world')\n`,
+  typescript: `console.log('Hello world')\n`,
+  python: `print("Hello world")\n`,
+  java: `public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello world");\n    }\n}\n`,
+  c: `#include <stdio.h>\n\nint main() {\n    printf("Hello world\\n");\n    return 0;\n}\n`,
+  cpp: `#include <iostream>\n\nint main() {\n    std::cout << "Hello world" << std::endl;\n    return 0;\n}\n`,
+  csharp: `using System;\n\nclass Program {\n    static void Main() {\n        Console.WriteLine("Hello world");\n    }\n}\n`,
+  go: `package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello world")\n}\n`,
+  rust: `fn main() {\n    println!("Hello world");\n}\n`,
+  ruby: `puts "Hello world"\n`,
+  php: `<?php\necho "Hello world\\n";\n`,
+  bash: `echo "Hello world"\n`,
+}
+
+/** Default code template — falls back to language starter or generic template */
+export const getDefaultEditorContent = (roomId: string, language = 'javascript'): string =>
+  LANGUAGE_STARTER_CODE[language] ?? `// Room: ${roomId}\nfunction add(a, b) { return a + b }\n`
 
 /** Monaco editor options */
 export const MONACO_EDITOR_OPTIONS = {
