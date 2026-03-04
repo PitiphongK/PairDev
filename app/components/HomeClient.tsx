@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Button, Form, Input, Spinner } from '@heroui/react'
 import { addToast } from '@heroui/toast'
@@ -12,10 +12,35 @@ import { generateRandomUserName } from '@/app/utils/randomName'
 import { formatRoomCodeInput, normalizeRoomCode } from '@/app/utils/roomCode'
 
 import { Logo } from './Logo'
+import SessionSummaryModal from './modals/SessionSummaryModal'
 
 export default function HomeClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  const [summaryData, setSummaryData] = useState<{
+    summary: { sessionMs: number; driverMs: number; navigatorMs: number; noneMs: number }
+    users: Array<{ clientId: number; name: string; driverMs: number; navigatorMs: number; noneMs: number }>
+  } | null>(null)
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem('codelink:session-summary')
+    if (!raw) return
+    sessionStorage.removeItem('codelink:session-summary')
+    try {
+      setSummaryData(JSON.parse(raw))
+    } catch { }
+  }, [])
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem('codelink:pending-toast')
+    if (!raw) return
+    sessionStorage.removeItem('codelink:pending-toast')
+    try {
+      const payload = JSON.parse(raw)
+      addToast(payload)
+    } catch { }
+  }, [])
 
   useEffect(() => {
     const error = searchParams?.get('error')
@@ -183,6 +208,13 @@ export default function HomeClient() {
 
   return (
     <main>
+      <SessionSummaryModal
+        isOpen={summaryData !== null}
+        onClose={() => setSummaryData(null)}
+        summary={summaryData?.summary ?? null}
+        users={summaryData?.users}
+        primaryActionLabel="Close"
+      />
       <div className="min-h-screen flex flex-col items-center py-8 px-4">
         <div className="mb-20 text-2xl flex justify-center">
           <Logo className="w-64 h-auto text-gray-900 dark:text-white" />

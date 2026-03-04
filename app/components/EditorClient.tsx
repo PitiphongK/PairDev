@@ -559,7 +559,17 @@ export default function EditorClient({ roomId }: EditorClientProps) {
       // Host stays to see analytics; everyone else leaves.
       if (isOwner) return
 
-      setSessionEndedOpen(true)
+      sessionStorage.setItem(
+        'codelink:pending-toast',
+        JSON.stringify({
+          title: 'Session ended',
+          description: 'The owner has ended this session.',
+          color: 'primary',
+          variant: 'solid',
+          timeout: 4000,
+        })
+      )
+      window.location.href = '/'
     }
 
     roomMap.observe(onRoomChange)
@@ -927,7 +937,7 @@ export default function EditorClient({ roomId }: EditorClientProps) {
       return
     }
 
-    // Finalize local role totals and show analytics.
+    // Finalize local role totals.
     if (endedAt === null) endedAt = Date.now()
     publishMyRoleTotals(endedAt)
     const startedAt = sessionStartRef.current ?? endedAt
@@ -940,13 +950,6 @@ export default function EditorClient({ roomId }: EditorClientProps) {
       else roleTotalsRef.current.none += delta
       roleSinceRef.current = { role: current.role, startedAt: endedAt }
     }
-
-    setSessionSummary({
-      sessionMs: Math.max(0, endedAt - startedAt),
-      driverMs: roleTotalsRef.current.driver,
-      navigatorMs: roleTotalsRef.current.navigator,
-      noneMs: roleTotalsRef.current.none,
-    })
 
     // Build per-user contribution list from shared analytics.
     const analyticsMap = analyticsMapRef.current
@@ -980,10 +983,22 @@ export default function EditorClient({ roomId }: EditorClientProps) {
         }
       })
       .sort((a, b) => a.name.localeCompare(b.name))
-    setTeamRoleContribution(users)
 
-    setSummaryOpen(true)
+    // Persist summary across navigation so HomeClient can show it.
+    sessionStorage.setItem(
+      'codelink:session-summary',
+      JSON.stringify({
+        summary: {
+          sessionMs: Math.max(0, endedAt - startedAt),
+          driverMs: roleTotalsRef.current.driver,
+          navigatorMs: roleTotalsRef.current.navigator,
+          noneMs: roleTotalsRef.current.none,
+        },
+        users,
+      })
+    )
     setEndingSession(false)
+    window.location.href = '/'
   }, [endingSession, isOwner, publishMyRoleTotals, roomId, userStates])
 
   /** Run code in the terminal */
@@ -1109,13 +1124,24 @@ export default function EditorClient({ roomId }: EditorClientProps) {
         }
         onSetRole={(clientId: number, role: AwarenessRole) => {
           if (!isOwner) return
-          rolesMapRef.current?.set(clientId.toString(), role)
+          const rolesMap = rolesMapRef.current
+          const ydoc = ydocRef.current
+          if (!rolesMap || !ydoc) return
+          if (role === 'driver') {
+            // Atomically demote the existing driver and promote the new one
+            Y.transact(ydoc, () => {
+              for (const [key, val] of rolesMap.entries()) {
+                if (val === 'driver' && key !== clientId.toString()) {
+                  rolesMap.set(key, 'navigator')
+                }
+              }
+              rolesMap.set(clientId.toString(), 'driver')
+            })
+          } else {
+            rolesMap.set(clientId.toString(), role)
+          }
         }}
         currentOwnerId={ownerId}
-        onTransferOwner={(targetId: number) => {
-          if (!isOwner) return
-          roomMapRef.current?.set(ROOM_MAP_KEYS.OWNER, targetId)
-        }}
         onCopyLink={handleInvite}
         // Settings
         settingsOpen={settingsOpen}

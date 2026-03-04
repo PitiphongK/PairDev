@@ -10,7 +10,6 @@ import type {
 import EndSessionConfirmModal from '@/app/components/modals/EndSessionConfirmModal'
 import GitHubImportModal from '@/app/components/modals/GitHubImportModal'
 import RoleNoticeModal from '@/app/components/modals/RoleNoticeModal'
-import RolesModal from '@/app/components/modals/RolesModal'
 import SessionEndedModal from '@/app/components/modals/SessionEndedModal'
 import SessionSummaryModal from '@/app/components/modals/SessionSummaryModal'
 import SettingsModal from '@/app/components/modals/SettingsModal'
@@ -40,7 +39,6 @@ interface EditorModalsProps {
   getRole: (clientId: number) => AwarenessRole
   onSetRole: (clientId: number, role: AwarenessRole) => void
   currentOwnerId: number | null
-  onTransferOwner: (targetId: number) => void
   onCopyLink: () => void
 
   // Settings modal
@@ -91,8 +89,6 @@ export default function EditorModals({
   getRole,
   onSetRole,
   currentOwnerId,
-  onTransferOwner,
-  onCopyLink,
   // Settings
   settingsOpen,
   onSettingsClose,
@@ -127,17 +123,6 @@ export default function EditorModals({
         onImport={onGitHubImport}
       />
       <SessionEndedModal isOpen={sessionEndedOpen} onGoHome={onGoHome} />
-      <RolesModal
-        isOpen={rolesOpen}
-        onClose={onRolesClose}
-        isOwner={isOwner}
-        users={userStates}
-        getRole={getRole}
-        onSetRole={onSetRole}
-        currentOwnerId={currentOwnerId}
-        onTransferOwner={onTransferOwner}
-        onCopyLink={onCopyLink}
-      />
       <SettingsModal
         isOpen={settingsOpen}
         onClose={onSettingsClose}
