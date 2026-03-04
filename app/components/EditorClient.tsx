@@ -122,6 +122,8 @@ export default function EditorClient({ roomId }: EditorClientProps) {
   const analyticsMapRef = useRef<Y.Map<unknown> | null>(null)
   const updateUsersRef = useRef<(() => void) | undefined>(undefined)
   const leaveConfirmedRef = useRef(false)
+  /** Holds the single active MonacoBinding — destroyed and recreated on layout switch. */
+  const bindingRef = useRef<{ destroy(): void } | null>(null)
 
   // Keep editorRef.current pointing to whichever editor layout is visible.
   // There are two separate <Editor> instances (desktop + mobile) but only one
@@ -215,26 +217,30 @@ export default function EditorClient({ roomId }: EditorClientProps) {
     return token
   }, [getOwnerTokenStorageKey])
 
-  /** Sync language to room map (driver only) */
-  const handleLanguageChange = useCallback((next: Languages) => {
+  /** Sync language to room map (driver only).
+   *  Pass skipContentReset=true when content has already been set (e.g. after
+   *  a file/GitHub import) to avoid overwriting it with the starter code. */
+  const handleLanguageChange = useCallback((next: Languages, skipContentReset = false) => {
     if (next === languageRef.current) return
     if (myRoleRef.current === 'navigator') return
     languageRef.current = next
     setLanguage(next)
     roomMapRef.current?.set(ROOM_MAP_KEYS.LANGUAGE, next)
-    // Replace editor content with starter code via Monaco's own edit API.
-    // Going through executeEdits ensures the y-monaco binding picks it up
-    // cleanly without fighting direct Y.Text manipulation.
-    const editor = editorRef.current
-    const model = editor?.getModel()
-    if (editor && model) {
-      const starter = LANGUAGE_STARTER_CODE[next] ?? ''
-      editor.executeEdits('language-change', [{
-        range: model.getFullModelRange(),
-        text: starter,
-        forceMoveMarkers: true,
-      }])
-      editor.setPosition({ lineNumber: 1, column: 1 })
+    // Skip the Y.Text reset when the caller has already written content
+    // (e.g. file import or GitHub import) — resetting here would overwrite it.
+    if (skipContentReset) return
+    // Write the starter code directly into Y.Text so the change propagates
+    // to all peers via Yjs, rather than only updating the local Monaco model
+    // with executeEdits (which the binding can't reliably broadcast).
+    const ydoc = ydocRef.current
+    if (ydoc) {
+      const ytext = ydoc.getText(YJS_KEYS.MONACO_TEXT)
+      // Always normalise to LF so Windows and Mac stay in sync
+      const starter = (LANGUAGE_STARTER_CODE[next] ?? '').replace(/\r\n/g, '\n')
+      ydoc.transact(() => {
+        ytext.delete(0, ytext.length)
+        ytext.insert(0, starter)
+      })
     }
   }, [])
 
@@ -247,6 +253,8 @@ export default function EditorClient({ roomId }: EditorClientProps) {
     handleGitHubImport,
   } = useFileOperations({
     editorRef,
+    ydocRef,
+    ytextKey: YJS_KEYS.MONACO_TEXT,
     language,
     roomId,
     onLanguageChange: handleLanguageChange,
@@ -448,7 +456,8 @@ export default function EditorClient({ roomId }: EditorClientProps) {
         const ytext = ydoc.getText(YJS_KEYS.MONACO_TEXT)
         if (ytext.length === 0) {
           const lang = isValidLanguage(sharedLanguage) ? sharedLanguage : languageRef.current
-          const starter = LANGUAGE_STARTER_CODE[lang] ?? ''
+          // Normalise to LF so Windows clients don't desync on first load
+          const starter = (LANGUAGE_STARTER_CODE[lang] ?? '').replace(/\r\n/g, '\n')
           if (starter) ytext.insert(0, starter)
         }
       }
@@ -854,46 +863,6 @@ export default function EditorClient({ roomId }: EditorClientProps) {
     }
   }, [isOwner])
 
-  /** Warn before leaving the room page (refresh/close/back/navigation). */
-  useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (leaveConfirmedRef.current) return
-      event.preventDefault()
-      // Most modern browsers ignore custom text and show a built-in message.
-      event.returnValue = ''
-    }
-
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload)
-    }
-  }, [])
-
-  /** Confirm when user presses browser Back while still inside the app (popstate). */
-  useEffect(() => {
-    // Create a guard entry so first Back stays on this page and lets us confirm.
-    window.history.pushState({ codelinkGuard: true }, '', window.location.href)
-
-    const handlePopState = () => {
-      if (leaveConfirmedRef.current) return
-
-      const ok = window.confirm('Are you sure you want to leave? Your edits may not be saved.')
-      if (ok) {
-        leaveConfirmedRef.current = true
-        window.history.back()
-        return
-      }
-
-      // Stay in this page by restoring the guard entry.
-      window.history.pushState({ codelinkGuard: true }, '', window.location.href)
-    }
-
-    window.addEventListener('popstate', handlePopState)
-    return () => {
-      window.removeEventListener('popstate', handlePopState)
-    }
-  }, [])
-
   // ============================================================================
   // Handlers - Editor & Session Management
   // ============================================================================
@@ -912,20 +881,50 @@ export default function EditorClient({ roomId }: EditorClientProps) {
 
     // Only make this editor the "active" one if its layout is currently visible.
     const isDesktop = window.matchMedia('(min-width: 768px)').matches
-    if ((isDesktop && !isMobile) || (!isDesktop && isMobile)) {
-      editorRef.current = editor
+    const isVisible = (isDesktop && !isMobile) || (!isDesktop && isMobile)
+
+    if (!isVisible) {
+      // This layout is hidden — don't bind Yjs to it. If it later becomes
+      // visible the resize observer in useEffect will call mountEditor again.
+      editor.updateOptions({ readOnly: myRoleRef.current === 'navigator' })
+      return
     }
+
+    editorRef.current = editor
 
     const ydoc = ydocRef.current!
     const provider = providerRef.current!
     const ytext = ydoc.getText(YJS_KEYS.MONACO_TEXT)
 
-    // Dynamically import y-monaco and create the binding
+    // Normalise any CRLF already in the shared Y.Text before binding.
+    // This handles the case where a Windows client seeded the document first.
+    const raw = ytext.toString()
+    if (raw.includes('\r\n')) {
+      ydoc.transact(() => {
+        ytext.delete(0, ytext.length)
+        ytext.insert(0, raw.replace(/\r\n/g, '\n'))
+      })
+    }
+
+    // Dynamically import y-monaco and create the binding.
+    // Destroy any previous binding first so only one is ever active at a time.
     const { MonacoBinding } = await import('y-monaco')
+
+    bindingRef.current?.destroy()
+    bindingRef.current = null
 
     const model = editor.getModel()
     if (model) {
-      new MonacoBinding(ytext, model, new Set([editor]), provider.awareness)
+      // Force Monaco to use LF so it never writes \r\n into the Yjs doc.
+      model.setEOL(0 /* EndOfLineSequence.LF */)
+
+      bindingRef.current = new MonacoBinding(ytext, model, new Set([editor]), provider.awareness)
+
+      // After binding, patch any CRLF Monaco may have re-introduced into the model.
+      const content = model.getValue()
+      if (content.includes('\r\n')) {
+        model.setValue(content.replace(/\r\n/g, '\n'))
+      }
     }
 
     // Apply read-only immediately based on current role.
