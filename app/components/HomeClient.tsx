@@ -100,7 +100,13 @@ export default function HomeClient() {
               e.preventDefault()
               const normalized = normalizeRoomCode(joinRoomId)
               if (!normalized) {
-                console.warn('Invalid room code format:', joinRoomId)
+                addToast({
+                  title: 'Invalid room code',
+                  description: 'Please use format XXX-XXX-XXX.',
+                  color: 'danger',
+                  variant: 'solid',
+                  timeout: 4000,
+                })
                 return
               }
               if (await isExistingRoom(normalized))
@@ -114,7 +120,6 @@ export default function HomeClient() {
                   variant: 'solid',
                   timeout: 4000,
                 })
-                console.warn('Room not found:', normalized)
               }
             }}
           >

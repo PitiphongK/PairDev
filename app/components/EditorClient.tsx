@@ -207,16 +207,6 @@ export default function EditorClient({ roomId }: EditorClientProps) {
     [roomId]
   )
 
-  const getOrCreateOwnerToken = useCallback(() => {
-    const key = getOwnerTokenStorageKey()
-    let token = sessionStorage.getItem(key)
-    if (!token) {
-      token = crypto.randomUUID()
-      sessionStorage.setItem(key, token)
-    }
-    return token
-  }, [getOwnerTokenStorageKey])
-
   /** Sync language to room map (driver only).
    *  Pass skipContentReset=true when content has already been set (e.g. after
    *  a file/GitHub import) to avoid overwriting it with the starter code. */
@@ -391,32 +381,45 @@ export default function EditorClient({ roomId }: EditorClientProps) {
       const candidates = Array.from(
         provider.awareness.getStates().keys()
       ) as number[]
-      const hadOwnerSession =
-        sessionStorage.getItem(getOwnerStorageKey()) === '1'
-      const localOwnerToken = getOrCreateOwnerToken()
-      const storedOwnerToken = roomMap.get(ROOM_MAP_KEYS.OWNER_TOKEN)
+      const localOwnerToken = sessionStorage.getItem(getOwnerTokenStorageKey())
+
+      const claimOwnership = async () => {
+        if (!localOwnerToken) return owner
+        try {
+          const res = await fetch(`/api/rooms/${roomId}/claim-ownership`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ownerToken: localOwnerToken }),
+          })
+          if (res.ok) {
+            roomMap.set(ROOM_MAP_KEYS.OWNER, currentId)
+            return currentId
+          }
+        } catch (err) {
+          console.error('Failed to claim ownership', err)
+        }
+        return roomMap.get(ROOM_MAP_KEYS.OWNER)
+      }
 
       if (owner == null) {
         const arbiter =
           candidates.length > 0 ? Math.min(...candidates) : currentId
         if (currentId === arbiter) {
-          roomMap.set(ROOM_MAP_KEYS.OWNER, arbiter)
-          roomMap.set(ROOM_MAP_KEYS.OWNER_TOKEN, localOwnerToken)
-          owner = arbiter
+          // This client is the first, claims ownership automatically.
+          claimOwnership().then((newOwner) => {
+            setOwnerId(typeof newOwner === 'number' ? newOwner : null)
+            setIsOwner(newOwner === currentId)
+            isOwnerRef.current = newOwner === currentId
+          })
         }
       } else if (owner !== currentId) {
         // If this client has the owner token, reclaim after refresh.
-        if (storedOwnerToken && storedOwnerToken === localOwnerToken) {
-          roomMap.set(ROOM_MAP_KEYS.OWNER, currentId)
-          owner = currentId
-        } else if (hadOwnerSession && !storedOwnerToken) {
-          const ownerPresent = candidates.includes(owner as number)
-          // Reclaim ownership after refresh when old owner clientId is gone.
-          if (!ownerPresent) {
-            roomMap.set(ROOM_MAP_KEYS.OWNER, currentId)
-            roomMap.set(ROOM_MAP_KEYS.OWNER_TOKEN, localOwnerToken)
-            owner = currentId
-          }
+        if (localOwnerToken) {
+          claimOwnership().then((newOwner) => {
+            setOwnerId(typeof newOwner === 'number' ? newOwner : null)
+            setIsOwner(newOwner === currentId)
+            isOwnerRef.current = newOwner === currentId
+          })
         }
       }
 
@@ -583,7 +586,7 @@ export default function EditorClient({ roomId }: EditorClientProps) {
       setProviderSynced(false)
       ownerInitRef.current = false
     }
-  }, [roomId, getOwnerStorageKey, getOrCreateOwnerToken])
+  }, [roomId, getOwnerStorageKey])
 
   // ============================================================================
   // Effects - Room State & Ownership
@@ -631,14 +634,6 @@ export default function EditorClient({ roomId }: EditorClientProps) {
   useEffect(() => {
     sessionStorage.setItem(getOwnerStorageKey(), isOwner ? '1' : '0')
   }, [isOwner, getOwnerStorageKey])
-
-  /** Persist owner token in room map so refresh can reclaim ownership */
-  useEffect(() => {
-    if (!isOwner || !providerSynced) return
-    const roomMap = roomMapRef.current
-    if (!roomMap) return
-    roomMap.set(ROOM_MAP_KEYS.OWNER_TOKEN, getOrCreateOwnerToken())
-  }, [isOwner, providerSynced, getOrCreateOwnerToken])
 
   /** Inject per-user cursor colors into Monaco based on awareness colors */
   useEffect(() => {

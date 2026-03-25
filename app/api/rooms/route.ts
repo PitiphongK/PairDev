@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 
 import { getRedis } from '@/app/lib/redis/client'
 import { generateRoomCode, isValidRoomCode } from '@/app/utils/roomCode'
@@ -8,6 +9,7 @@ export const runtime = 'nodejs'
 type Room = {
   id: string
   createdAt: string
+  ownerToken?: string
 }
 
 function roomKey(id: string) {
@@ -52,9 +54,11 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      const ownerToken = crypto.randomBytes(16).toString('hex')
       const newRoom: Room = {
         id: requestedId,
         createdAt: new Date().toISOString(),
+        ownerToken,
       }
       const created = await redis.set(
         roomKey(requestedId),
@@ -73,7 +77,8 @@ export async function POST(request: NextRequest) {
     const maxAttempts = 16
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const id = generateRoomCode()
-      const newRoom: Room = { id, createdAt: new Date().toISOString() }
+      const ownerToken = crypto.randomBytes(16).toString('hex')
+      const newRoom: Room = { id, createdAt: new Date().toISOString(), ownerToken }
       const created = await redis.set(roomKey(id), JSON.stringify(newRoom), {
         NX: true,
       })
