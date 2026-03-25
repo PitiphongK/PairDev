@@ -19,7 +19,7 @@ export const STORAGE_KEYS = {
   /** Whether to hide the role notice modal */
   HIDE_ROLE_NOTICE: 'codelink:hideRoleNotice',
   /** User's display name */
-  USER_NAME: 'userName',
+  USER_NAME: 'codelink:userName',
 } as const
 
 // ============================================================================

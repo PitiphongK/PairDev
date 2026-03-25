@@ -25,7 +25,7 @@ export default function RoomPageClient({ id }: Props) {
     }
 
     try {
-      const storedName = sessionStorage.getItem('userName')
+      const storedName = sessionStorage.getItem('codelink:userName')
       if (!storedName) {
         setHasUserName(false)
         router.replace(`/?join=${encodeURIComponent(id)}`)

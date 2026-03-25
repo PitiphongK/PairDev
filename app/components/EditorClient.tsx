@@ -369,7 +369,7 @@ export default function EditorClient({ roomId }: EditorClientProps) {
     setRoomReady(true)
     const currentId = provider.awareness.clientID
     // Wait for initial sync before electing or reading owner
-    const syncedHandler = (isSynced: boolean) => {
+    const syncedHandler = async (isSynced: boolean) => {
       if (!isSynced) return
       setProviderSynced(true)
 
@@ -384,7 +384,7 @@ export default function EditorClient({ roomId }: EditorClientProps) {
       const localOwnerToken = sessionStorage.getItem(getOwnerTokenStorageKey())
 
       const claimOwnership = async () => {
-        if (!localOwnerToken) return owner
+        if (!localOwnerToken) return roomMap.get(ROOM_MAP_KEYS.OWNER)
         try {
           const res = await fetch(`/api/rooms/${roomId}/claim-ownership`, {
             method: 'POST',
@@ -406,20 +406,14 @@ export default function EditorClient({ roomId }: EditorClientProps) {
           candidates.length > 0 ? Math.min(...candidates) : currentId
         if (currentId === arbiter) {
           // This client is the first, claims ownership automatically.
-          claimOwnership().then((newOwner) => {
-            setOwnerId(typeof newOwner === 'number' ? newOwner : null)
-            setIsOwner(newOwner === currentId)
-            isOwnerRef.current = newOwner === currentId
-          })
+          const newOwner = await claimOwnership()
+          owner = typeof newOwner === 'number' ? newOwner : roomMap.get(ROOM_MAP_KEYS.OWNER)
         }
       } else if (owner !== currentId) {
         // If this client has the owner token, reclaim after refresh.
         if (localOwnerToken) {
-          claimOwnership().then((newOwner) => {
-            setOwnerId(typeof newOwner === 'number' ? newOwner : null)
-            setIsOwner(newOwner === currentId)
-            isOwnerRef.current = newOwner === currentId
-          })
+          const newOwner = await claimOwnership()
+          owner = typeof newOwner === 'number' ? newOwner : roomMap.get(ROOM_MAP_KEYS.OWNER)
         }
       }
 

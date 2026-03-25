@@ -82,7 +82,6 @@ export function useRoomLanding() {
   }
 
   const handleCreateRoom = async () => {
-    console.log('Creating room...')
     setIsSubmitting(true)
     const name = userName.trim()
     if (!name) {

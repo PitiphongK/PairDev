@@ -10,11 +10,16 @@ function roomKey(id: string) {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const roomId = params.id
+  const { id: rawId } = await params
+  const roomId = rawId?.trim()
   const body = await request.json().catch(() => null)
   const token = typeof body?.ownerToken === 'string' ? body.ownerToken : ''
+
+  if (!roomId) {
+    return NextResponse.json({ error: 'Room ID is required' }, { status: 400 })
+  }
 
   if (!token) {
     return NextResponse.json({ error: 'Owner token is required' }, { status: 400 })
