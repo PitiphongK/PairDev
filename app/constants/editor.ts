@@ -19,7 +19,7 @@ export const STORAGE_KEYS = {
   /** Whether to hide the role notice modal */
   HIDE_ROLE_NOTICE: 'codelink:hideRoleNotice',
   /** User's display name */
-  USER_NAME: 'userName',
+  USER_NAME: 'codelink:userName',
 } as const
 
 // ============================================================================
@@ -63,7 +63,6 @@ export const YJS_KEYS = {
 /** Keys within the room map */
 export const ROOM_MAP_KEYS = {
   OWNER: 'owner',
-  OWNER_TOKEN: 'ownerToken',
   LANGUAGE: 'language',
   DESTROYED: 'destroyed',
   DESTROYED_AT: 'destroyedAt',

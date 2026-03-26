@@ -14,12 +14,17 @@ function readErrorMessage(value: unknown): string | null {
   return typeof error === 'string' ? error : null
 }
 
-function readRoomId(value: unknown): string | null {
+function readRoom(value: unknown): { id: string; ownerToken?: string } | null {
   if (!value || typeof value !== 'object') return null
   const room = (value as { room?: unknown }).room
   if (!room || typeof room !== 'object') return null
   const id = (room as { id?: unknown }).id
-  return typeof id === 'string' && id ? id : null
+  if (typeof id !== 'string' || !id) return null
+  const ownerToken = (room as { ownerToken?: unknown }).ownerToken
+  if (typeof ownerToken === 'string') {
+    return { id, ownerToken }
+  }
+  return { id }
 }
 
 export function useRoomLanding() {
@@ -31,7 +36,7 @@ export function useRoomLanding() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    const storedUserName = sessionStorage.getItem('userName')
+    const storedUserName = sessionStorage.getItem('codelink:userName')
     if (storedUserName) {
       setUserName(storedUserName)
     } else {
@@ -72,12 +77,11 @@ export function useRoomLanding() {
       setIsSubmitting(false)
       return
     }
-    sessionStorage.setItem('userName', name)
+    sessionStorage.setItem('codelink:userName', name)
     router.push(`/rooms/${normalized}`)
   }
 
   const handleCreateRoom = async () => {
-    console.log('Creating room...')
     setIsSubmitting(true)
     const name = userName.trim()
     if (!name) {
@@ -91,7 +95,7 @@ export function useRoomLanding() {
       setIsSubmitting(false)
       return
     }
-    sessionStorage.setItem('userName', name)
+    sessionStorage.setItem('codelink:userName', name)
 
     try {
       const response = await fetch('/api/rooms', {
@@ -102,10 +106,10 @@ export function useRoomLanding() {
       })
 
       if (!response.ok) {
-        const errorData: unknown = await response.json().catch(() => null)
+        const body = await response.json().catch(() => null)
         addToast({
           title: 'Failed to create room',
-          description: readErrorMessage(errorData) || 'Please try again.',
+          description: readErrorMessage(body) || 'Please try again.',
           color: 'danger',
           variant: 'solid',
           timeout: 5000,
@@ -114,24 +118,28 @@ export function useRoomLanding() {
         return
       }
 
-      const data: unknown = await response.json().catch(() => null)
-      const roomId = readRoomId(data)
-      if (!roomId) {
+      const body = await response.json()
+      const room = readRoom(body)
+      if (room?.id) {
+        if (room.ownerToken) {
+          sessionStorage.setItem(
+            `codelink:ownerToken:${room.id}`,
+            room.ownerToken
+          )
+        }
+        router.push(`/rooms/${room.id}`)
+      } else {
         addToast({
-          title: 'Failed to create room',
-          description:
-            'Server returned an invalid room code. Please try again.',
+          title: 'Error creating room',
+          description: 'Invalid response from server. Please try again.',
           color: 'danger',
           variant: 'solid',
           timeout: 5000,
         })
         setIsSubmitting(false)
-        return
       }
-
-      router.push(`/rooms/${roomId}`)
-    } catch (error) {
-      console.error('Error creating room:', error)
+    } catch (err) {
+      console.error('Room creation failed', err)
       addToast({
         title: 'Network error',
         description: 'Please try again.',
@@ -143,10 +151,10 @@ export function useRoomLanding() {
     }
   }
 
-  const isExistingRoom = async (roomId: string) => {
+  const isExistingRoom = async (id: string) => {
     setIsSubmitting(true)
     try {
-      const response = await fetch(`/api/rooms?id=${roomId}`)
+      const response = await fetch(`/api/rooms?id=${id}`)
       if (!response.ok) return false
       const data = await response.json()
       return !!data.room
