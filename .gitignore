@@ -47,5 +47,5 @@ next-env.d.ts
 /test-results
 
 # others
-/docs
+/docs/misc
 \n# Test environment file\n.env.test
