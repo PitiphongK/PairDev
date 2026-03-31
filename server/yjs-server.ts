@@ -7,7 +7,7 @@ import * as decoding from 'lib0/decoding'
 import * as map from 'lib0/map'
 
 // Use PORT env var (set by Render/Railway), fallback to YJS_PORT or 1234
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : (process.env.YJS_PORT ? parseInt(process.env.YJS_PORT) : 1234)
+const PORT = process.env.YJS_PORT ? parseInt(process.env.YJS_PORT) : 1234;
 
 const wss = new WebSocketServer({ port: PORT })
 

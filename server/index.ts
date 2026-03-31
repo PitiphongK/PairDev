@@ -6,7 +6,7 @@ import { TerminalManager } from './terminal'
 
 const app = express()
 const server = http.createServer(app)
-const PORT = process.env.PORT || 4000
+const PORT = process.env.SOCKET_PORT || 4000
 const io = new Server(server, {
   cors: {
     origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000'],
