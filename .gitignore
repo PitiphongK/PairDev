@@ -41,5 +41,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Tests
+/playwright-report
+/test-results
+
 # others
 /docs
+\n# Test environment file\n.env.test
