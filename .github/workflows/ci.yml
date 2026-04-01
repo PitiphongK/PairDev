@@ -82,7 +82,7 @@ jobs:
           NEXT_PUBLIC_SOCKET_URL: ws://localhost:4000
 
   deploy:
-    name: Deploy to Vercel
+    name: Deploy Services
     runs-on: ubuntu-latest
     needs: [unit-tests, e2e-tests]
     if: github.ref == 'refs/heads/main'
@@ -90,3 +90,9 @@ jobs:
     steps:
       - name: Trigger Vercel Deploy Hook
         run: curl -X POST ${{ secrets.VERCEL_MAIN_BRANCH_HOOK_DEPLOY }}
+
+      - name: Trigger Render Socket Server Deploy Hook
+        run: curl -X POST ${{ secrets.RENDER_SOCKET_DEPLOY_HOOK_URL }}
+
+      - name: Trigger Render Yjs Server Deploy Hook
+        run: curl -X POST ${{ secrets.RENDER_YJS_DEPLOY_HOOK_URL }}
