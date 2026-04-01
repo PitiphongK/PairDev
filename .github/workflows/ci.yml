@@ -18,6 +18,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+        # use specific pnpm version
+      - name: Enable Corepack
+        run: |
+          npm install -g corepack@latest
+          corepack enable
+          corepack prepare pnpm@10.24.0 --activate
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
@@ -53,6 +59,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+      # use specific pnpm version
+      - name: Enable Corepack
+        run: |
+          npm install -g corepack@latest
+          corepack enable
+          corepack prepare pnpm@10.24.0 --activate
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
