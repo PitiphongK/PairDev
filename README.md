@@ -24,6 +24,15 @@ The codebase is organized into several key directories:
 └── Dockerfile        # Docker configuration for the application
 ```
 
+## Cloning the Repository
+
+To get started, clone the repository to your local machine:
+
+```bash
+git clone https://github.com/PitiphongK/PairDev.git
+cd PairDev
+```
+
 ## Requirements
 
 To run this project, you will need the following installed on your system:
