@@ -17,7 +17,10 @@ vi.mock('@/app/lib/redis/client', () => ({
 
 import { DELETE, GET, POST } from '@/app/api/rooms/route'
 
-function req(url: string, init?: RequestInit) {
+function req(
+  url: string,
+  init?: ConstructorParameters<typeof NextRequest>[1]
+) {
   return new NextRequest(url, init)
 }
 
