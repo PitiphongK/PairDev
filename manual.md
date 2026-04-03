@@ -19,7 +19,7 @@ After selecting or creating a room, enter your display name.
 - It helps identify you in the people list, role controls, and live collaboration features.
 
 <p align="center">
-  <img src="./docs/images/Name_prompt_small.png" alt="Display name prompt" width="520">
+  <img src="./docs/images/Name_prompt_small.png" alt="Display name prompt" width="320">
 </p>
 
 ### Notes
@@ -29,11 +29,11 @@ After selecting or creating a room, enter your display name.
 - PairDev also shows an error toast if the room does not exist yet.
 
 <p align="center">
-  <img src="./docs/images/ui_toast_err_invalid_room_code.png" alt="Invalid room code toast" width="420">
+  <img src="./docs/images/ui_toast_err_invalid_room_code.png" alt="Invalid room code toast" width="320">
 </p>
 
 <p align="center">
-  <img src="./docs/images/ui_toast_err_room_not_found.png" alt="Room not found toast" width="420">
+  <img src="./docs/images/ui_toast_err_room_not_found.png" alt="Room not found toast" width="320">
 </p>
 
 ## 2. Understand the workspace
@@ -84,11 +84,11 @@ PairDev uses two main roles:
 When your role changes, PairDev explains it through both a dialog and a toast.
 
 <p align="center">
-  <img src="./docs/images/driver_notification.png" alt="Driver role dialog" width="560">
+  <img src="./docs/images/driver_notification.png" alt="Driver role dialog" width="460">
 </p>
 
 <p align="center">
-  <img src="./docs/images/navigator_notification.png" alt="Navigator role dialog" width="560">
+  <img src="./docs/images/navigator_notification.png" alt="Navigator role dialog" width="460">
 </p>
 
 <p align="center">
@@ -126,7 +126,7 @@ PairDev also shows live presence information in the editor, such as:
 - visual indication of where the other participant is working
 
 <p align="center">
-  <img src="./docs/images/ui_text_highlight_cursor.png" alt="Live cursor and highlight" width="520">
+  <img src="./docs/images/ui_text_highlight_cursor.png" alt="Live cursor and highlight" width="420">
 </p>
 
 ## 5. Use the participant list and follow mode
@@ -186,7 +186,7 @@ Then:
 The result appears in the shared terminal for both participants.
 
 <p align="center">
-  <img src="./docs/images/terminal_cropped.png" alt="Shared terminal output" width="500">
+  <img src="./docs/images/terminal_cropped.png" alt="Shared terminal output" width="400">
 </p>
 
 ## 7. Use code annotation
@@ -201,7 +201,7 @@ Use it to:
 - explain code visually during discussion
 
 <p align="center">
-  <img src="./docs/images/ui_code_annotation.png" alt="Code annotation" width="760">
+  <img src="./docs/images/ui_code_annotation.png" alt="Code annotation" width="460">
 </p>
 
 ## 8. Use the collaborative whiteboard
@@ -217,7 +217,7 @@ It is useful for:
 - general visual discussion that does not need to sit directly on top of the code
 
 <p align="center">
-  <img src="./docs/images/whiteboard.png" alt="Collaborative whiteboard" width="720">
+  <img src="./docs/images/whiteboard.png" alt="Collaborative whiteboard" width="400">
 </p>
 
 ### Whiteboard tools
@@ -249,7 +249,7 @@ From the general settings tab, you can change the visual theme:
 - **System**
 
 <p align="center">
-  <img src="./docs/images/theme_settings.png" alt="Theme settings" width="760">
+  <img src="./docs/images/theme_settings.png" alt="Theme settings" width="460">
 </p>
 
 ### Manage roles
@@ -261,7 +261,7 @@ From the manage roles tab, the room owner can:
 - update roles during the session
 
 <p align="center">
-  <img src="./docs/images/manage_role_settings.png" alt="Manage roles" width="760">
+  <img src="./docs/images/manage_role_settings.png" alt="Manage roles" width="460">
 </p>
 
 ## 10. View analytics
@@ -277,7 +277,7 @@ The analytics view shows:
 - role contribution for participants
 
 <p align="center">
-  <img src="./docs/images/analytics.png" alt="Session analytics" width="620">
+  <img src="./docs/images/analytics.png" alt="Session analytics" width="420">
 </p>
 
 ## 11. End the session
@@ -287,7 +287,7 @@ When the session is finished, the owner can end it for everyone.
 Before the room closes, PairDev shows a confirmation dialog so that the action is not triggered accidentally.
 
 <p align="center">
-  <img src="./docs/images/ui_end_session.png" alt="End session confirmation" width="520">
+  <img src="./docs/images/ui_end_session.png" alt="End session confirmation" width="420">
 </p>
 
 ## 12. Quick tips

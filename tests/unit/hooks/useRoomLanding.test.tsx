@@ -73,7 +73,7 @@ describe('useRoomLanding', () => {
     })
     act(() => result.current.handleJoinRoom())
 
-    expect(sessionStorage.getItem('userName')).toBe('Alice')
+    expect(sessionStorage.getItem('codelink:userName')).toBe('Alice')
     expect(mockPush).toHaveBeenCalledWith('/rooms/abc-def-ghi')
     expect(mockAddToast).not.toHaveBeenCalled()
   })
@@ -186,7 +186,7 @@ describe('useRoomLanding', () => {
     expect(mockPush).not.toHaveBeenCalled()
     expect(mockAddToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Failed to create room',
+        title: 'Error creating room',
       })
     )
   })
