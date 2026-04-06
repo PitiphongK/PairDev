@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  // @id              : primary key
+  // @default(auto()) : auto generate id
+  // @map("_id")      : Map to MongoDB _id
+  // @db.ObjectId     : use MongoDB id type
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  email     String        @unique
+  name      String?
+  avatarUrl String?
+  googleId  String?       @unique
+  createdAt DateTime      @default(now())
+  sessions  UserSession[]
+}
+
+model Session {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  roomId       String
+  code         String
+  language     String
+  strokes      Json // Y.Array<Stroke>.toArray() serialized
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  participants UserSession[]
+}
+
+model UserSession {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  sessionId String   @db.ObjectId
+  name      String
+  isOwner   Boolean  @default(false)
+  forgotten Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  session   Session  @relation(fields: [sessionId], references: [id])
+
+  @@unique([userId, sessionId])
+}

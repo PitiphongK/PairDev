@@ -49,3 +49,7 @@ next-env.d.ts
 # others
 /docs/misc
 \n# Test environment file\n.env.test
+CLAUDE.md
+/app/generated/prisma
+
+/generated/prisma
