@@ -4,8 +4,8 @@
 
 import type { WebsocketProvider } from 'y-websocket'
 
-import type { AwarenessRole, AwarenessState } from '@/app/interfaces/awareness'
-import type { setupYjs } from '@/app/y'
+import type { AwarenessRole, AwarenessState } from '@/interfaces/awareness'
+import type { setupYjs } from '@/y'
 
 // ============================================================================
 // Yjs Related Types
@@ -115,4 +115,4 @@ export interface EditorClientProps {
 // Re-exports for convenience
 // ============================================================================
 
-export type { AwarenessRole, AwarenessState } from '@/app/interfaces/awareness'
+export type { AwarenessRole, AwarenessState } from '@/interfaces/awareness'

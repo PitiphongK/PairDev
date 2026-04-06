@@ -11,9 +11,9 @@ import {
   DEFAULT_VERTICAL_LAYOUT,
   LAYOUT_SYNC_DEBOUNCE_MS,
   PANELS_MAP_KEYS,
-} from '@/app/constants/editor'
-import type { AwarenessRole } from '@/app/interfaces/awareness'
-import { isNumberArray } from '@/app/utils/editor'
+} from '@/constants/editor'
+import type { AwarenessRole } from '@/interfaces/awareness'
+import { isNumberArray } from '@/utils/editor'
 
 interface UsePanelLayoutOptions {
   /** Reference to the panels Yjs map */

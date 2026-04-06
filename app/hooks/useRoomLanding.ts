@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react'
 import { addToast } from '@heroui/toast'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-import type { RoomEntryStep } from '@/app/interfaces/types'
-import { generateRandomUserName } from '@/app/utils/randomName'
-import { formatRoomCodeInput, normalizeRoomCode } from '@/app/utils/roomCode'
+import type { RoomEntryStep } from '@/interfaces/types'
+import { generateRandomUserName } from '@/utils/randomName'
+import { formatRoomCodeInput, normalizeRoomCode } from '@/utils/roomCode'
 
 function readErrorMessage(value: unknown): string | null {
   if (!value || typeof value !== 'object') return null

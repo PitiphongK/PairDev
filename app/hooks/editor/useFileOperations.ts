@@ -5,7 +5,7 @@
 import { useCallback } from 'react'
 import { addToast } from '@heroui/toast'
 
-import { Languages, languageExtensions} from '@/app/interfaces/languages'
+import { Languages, languageExtensions} from '@/interfaces/languages'
 
 interface UseFileOperationsOptions {
   /** Reference to the Monaco editor instance */

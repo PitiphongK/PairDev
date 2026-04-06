@@ -1,6 +1,6 @@
 'use client'
 
-import { Languages } from '@/app/interfaces/languages'
+import { Languages } from '@/interfaces/languages'
 
 export function getLanguageIcon(value: Languages) {
   switch (value) {

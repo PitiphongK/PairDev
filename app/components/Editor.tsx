@@ -12,7 +12,7 @@ import Editor from '@monaco-editor/react'
 import { WebsocketProvider } from 'y-websocket'
 import * as Y from 'yjs'
 
-import { Languages, languageOptions } from '@/app/interfaces/languages'
+import { Languages, languageOptions } from '@/interfaces/languages'
 
 type Props = {
   roomId: string

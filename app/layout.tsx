@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Roboto, Roboto_Mono } from 'next/font/google'
 
-import { Providers } from '@/app/providers'
+import { Providers } from '@/providers'
 
 import './globals.css'
 

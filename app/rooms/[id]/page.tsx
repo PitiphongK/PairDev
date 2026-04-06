@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 
-import { getRedis } from '@/app/lib/redis/client'
-import { isValidRoomCode } from '@/app/utils/roomCode'
+import { getRedis } from '@/lib/redis/client'
+import { isValidRoomCode } from '@/utils/roomCode'
 
 import RoomPageClient from './RoomPageClient'
 

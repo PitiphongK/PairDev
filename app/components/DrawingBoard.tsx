@@ -16,7 +16,7 @@ import { nanoid } from 'nanoid'
 import { getStroke } from 'perfect-freehand'
 import * as Y from 'yjs'
 
-import { Stroke } from '@/app/interfaces/drawing'
+import { Stroke } from '@/interfaces/drawing'
 import { useStroke } from '../hooks/useStroke'
 import { useStrokes } from '../hooks/useStrokes'
 import { getSvgPathFromStroke } from '../utils/drawing'

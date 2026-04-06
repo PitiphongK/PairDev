@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { getRedis } from '@/app/lib/redis/client'
+import { getRedis } from '@/lib/redis/client'
 
 export const runtime = 'nodejs'
 

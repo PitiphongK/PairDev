@@ -12,7 +12,7 @@ import {
 } from '@heroui/react'
 import { Crown, Settings, Users, X } from 'lucide-react'
 
-import type { AwarenessState } from '@/app/interfaces/awareness'
+import type { AwarenessState } from '@/interfaces/awareness'
 import { ThemeSwitcher } from '../theme-switcher'
 
 type Role = 'driver' | 'navigator'

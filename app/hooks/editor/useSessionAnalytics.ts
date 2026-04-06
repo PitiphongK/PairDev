@@ -6,16 +6,16 @@ import { useCallback, useEffect, useRef } from 'react'
 import type { WebsocketProvider } from 'y-websocket'
 import type * as Y from 'yjs'
 
-import { ANALYTICS_PUBLISH_INTERVAL_MS } from '@/app/constants/editor'
-import type { AwarenessRole } from '@/app/interfaces/awareness'
+import { ANALYTICS_PUBLISH_INTERVAL_MS } from '@/constants/editor'
+import type { AwarenessRole } from '@/interfaces/awareness'
 import type {
   AwarenessEntry,
   RoleTrackingState,
   RoleTotals,
   SessionSummary,
   UserRoleContribution,
-} from '@/app/interfaces/editor'
-import { parseAnalyticsEntry } from '@/app/utils/editor'
+} from '@/interfaces/editor'
+import { parseAnalyticsEntry } from '@/utils/editor'
 
 interface UseSessionAnalyticsOptions {
   /** Current user's role */

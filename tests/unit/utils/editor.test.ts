@@ -10,7 +10,7 @@ import {
   parseAnalyticsEntry,
   pickRandomOwner,
   updateRoleTotalsOnChange,
-} from '@/app/utils/editor'
+} from '@/utils/editor'
 import { describe, expect, it } from 'vitest'
 
 describe('editor utils', () => {

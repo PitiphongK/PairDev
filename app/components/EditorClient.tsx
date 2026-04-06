@@ -20,16 +20,16 @@ import { useTheme } from 'next-themes'
 import { WebsocketProvider } from 'y-websocket'
 import * as Y from 'yjs'
 
-import DrawingBoard from '@/app/components/DrawingBoard'
-import EditorOverlayDrawing from '@/app/components/EditorOverlayDrawing'
+import DrawingBoard from '@/components/DrawingBoard'
+import EditorOverlayDrawing from '@/components/EditorOverlayDrawing'
 import {
   EditorModals,
   LanguageSelector,
   LiveCursors,
   TerminalPanel,
-} from '@/app/components/editor/index'
-import { type SharedTerminalHandle } from '@/app/components/SharedTerminal'
-import Toolbar from '@/app/components/Toolbar'
+} from '@/components/editor/index'
+import { type SharedTerminalHandle } from '@/components/SharedTerminal'
+import Toolbar from '@/components/Toolbar'
 import {
   DEFAULT_HORIZONTAL_LAYOUT,
   DEFAULT_VERTICAL_LAYOUT,
@@ -40,30 +40,30 @@ import {
   STORAGE_KEYS,
   YJS_KEYS,
   YJS_WEBSOCKET_URL,
-} from '@/app/constants/editor'
+} from '@/constants/editor'
 import {
   useFileOperations,
   usePanelLayout,
   useRoleNotice,
   useSessionAnalytics,
-} from '@/app/hooks/editor'
-import { useMonacoFollowScroll } from '@/app/hooks/useMonacoFollowScroll'
-import type { AwarenessRole } from '@/app/interfaces/awareness'
+} from '@/hooks/editor'
+import { useMonacoFollowScroll } from '@/hooks/useMonacoFollowScroll'
+import type { AwarenessRole } from '@/interfaces/awareness'
 import type {
   AwarenessEntry,
   EditorClientProps,
   ProviderWithSyncedEvents,
   SessionSummary,
   UserRoleContribution,
-} from '@/app/interfaces/editor'
-import { Languages } from '@/app/interfaces/languages'
+} from '@/interfaces/editor'
+import { Languages } from '@/interfaces/languages'
 import {
   generateRandomColor,
   isNumberArray,
   parseAnalyticsEntry,
-} from '@/app/utils/editor'
+} from '@/utils/editor'
 import { BarChart2, Crown, LogOut, MoreHorizontal, Pen, PenOff, Settings, Users, X } from 'lucide-react'
-import { getLanguageIcon } from '@/app/components/editor/get-language-icon'
+import { getLanguageIcon } from '@/components/editor/get-language-icon'
 
 const LANGUAGE_VALUES = new Set(Object.values(Languages))
 const isValidLanguage = (value: unknown): value is Languages =>

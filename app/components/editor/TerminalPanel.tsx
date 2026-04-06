@@ -4,7 +4,7 @@ import { forwardRef } from 'react'
 
 import SharedTerminal, {
   type SharedTerminalHandle,
-} from '@/app/components/SharedTerminal'
+} from '@/components/SharedTerminal'
 
 interface TerminalPanelProps {
   /** Room ID for the shared terminal */

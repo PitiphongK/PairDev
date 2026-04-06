@@ -6,7 +6,7 @@ Manage all strokes locally and in yjs doc
 
 import { useCallback, useEffect, useState } from 'react'
 import * as Y from 'yjs'
-import { Stroke } from '@/app/interfaces/drawing'
+import { Stroke } from '@/interfaces/drawing'
 
 export function useStrokes(ydoc: Y.Doc | null, arrayName = 'strokes') {
   const [strokes, setStrokes] = useState<Stroke[]>([])

@@ -3,7 +3,7 @@
 import { NextRequest } from 'next/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { POST } from '@/app/api/run/route'
+import { POST } from '@/api/run/route'
 
 function req(body: unknown) {
   return new NextRequest('http://localhost/api/run', {

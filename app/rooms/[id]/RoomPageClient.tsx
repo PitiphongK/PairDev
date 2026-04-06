@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 
-import { isValidRoomCode } from '@/app/utils/roomCode'
+import { isValidRoomCode } from '@/utils/roomCode'
 
 const EditorClient = dynamic(() => import('../../components/EditorClient'), { ssr: false })
 

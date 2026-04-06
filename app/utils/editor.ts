@@ -7,8 +7,8 @@ import type {
   RoleTrackingState,
   RoleTotals,
   SessionSummary,
-} from '@/app/interfaces/editor'
-import type { AwarenessRole } from '@/app/interfaces/awareness'
+} from '@/interfaces/editor'
+import type { AwarenessRole } from '@/interfaces/awareness'
 
 // ============================================================================
 // Type Guards

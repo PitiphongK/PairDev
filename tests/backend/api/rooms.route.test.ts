@@ -15,7 +15,7 @@ vi.mock('@/app/lib/redis/client', () => ({
   getRedis: vi.fn(async () => redisMock),
 }))
 
-import { DELETE, GET, POST } from '@/app/api/rooms/route'
+import { DELETE, GET, POST } from '@/api/rooms/route'
 
 function req(
   url: string,

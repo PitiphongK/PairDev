@@ -21,8 +21,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
-import type { AwarenessState } from '@/app/interfaces/awareness'
-import { LogoIcon } from '@/app/components/Logo'
+import type { AwarenessState } from '@/interfaces/awareness'
+import { LogoIcon } from '@/components/Logo'
 
 interface Props {
   onImport?: (e: React.ChangeEvent<HTMLInputElement>) => void

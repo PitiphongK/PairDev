@@ -8,8 +8,8 @@ import {
   DropdownTrigger,
 } from '@heroui/react'
 
-import { Languages, languageOptions } from '@/app/interfaces/languages'
-import { getLanguageIcon } from '@/app/components/editor/get-language-icon'
+import { Languages, languageOptions } from '@/interfaces/languages'
+import { getLanguageIcon } from '@/components/editor/get-language-icon'
 
 interface LanguageSelectorProps {
   /** Currently selected language */

@@ -2,7 +2,7 @@
 
 import React from 'react'
 
-import DrawingBoard from '@/app/components/DrawingBoard'
+import DrawingBoard from '@/components/DrawingBoard'
 import type * as Y from 'yjs'
 
 interface EditorOverlayDrawingProps {

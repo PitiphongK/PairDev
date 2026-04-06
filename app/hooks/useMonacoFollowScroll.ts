@@ -9,8 +9,8 @@ import type {
   AwarenessEditorCursor,
   AwarenessScroll,
   AwarenessState,
-} from '@/app/interfaces/awareness'
-import { YJS_KEYS } from '@/app/constants/editor'
+} from '@/interfaces/awareness'
+import { YJS_KEYS } from '@/constants/editor'
 
 /**
  * Hook to publish local editor cursor and snap to a followed user's cursor.

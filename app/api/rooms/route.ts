@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 
-import { getRedis } from '@/app/lib/redis/client'
-import { generateRoomCode, isValidRoomCode } from '@/app/utils/roomCode'
+import { getRedis } from '@/lib/redis/client'
+import { generateRoomCode, isValidRoomCode } from '@/utils/roomCode'
 
 export const runtime = 'nodejs'
 

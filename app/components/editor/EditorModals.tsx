@@ -1,18 +1,18 @@
 'use client'
 
-import type { AwarenessRole } from '@/app/interfaces/awareness'
+import type { AwarenessRole } from '@/interfaces/awareness'
 import type {
   AwarenessEntry,
   SessionSummary,
   UserRoleContribution,
-} from '@/app/interfaces/editor'
+} from '@/interfaces/editor'
 
-import EndSessionConfirmModal from '@/app/components/modals/EndSessionConfirmModal'
-import GitHubImportModal from '@/app/components/modals/GitHubImportModal'
-import RoleNoticeModal from '@/app/components/modals/RoleNoticeModal'
-import SessionEndedModal from '@/app/components/modals/SessionEndedModal'
-import SessionSummaryModal from '@/app/components/modals/SessionSummaryModal'
-import SettingsModal from '@/app/components/modals/SettingsModal'
+import EndSessionConfirmModal from '@/components/modals/EndSessionConfirmModal'
+import GitHubImportModal from '@/components/modals/GitHubImportModal'
+import RoleNoticeModal from '@/components/modals/RoleNoticeModal'
+import SessionEndedModal from '@/components/modals/SessionEndedModal'
+import SessionSummaryModal from '@/components/modals/SessionSummaryModal'
+import SettingsModal from '@/components/modals/SettingsModal'
 
 interface EditorModalsProps {
   // Role notice modal

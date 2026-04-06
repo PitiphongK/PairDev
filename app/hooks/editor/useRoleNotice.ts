@@ -4,8 +4,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { STORAGE_KEYS } from '@/app/constants/editor'
-import type { AwarenessRole } from '@/app/interfaces/awareness'
+import { STORAGE_KEYS } from '@/constants/editor'
+import type { AwarenessRole } from '@/interfaces/awareness'
 
 interface UseRoleNoticeOptions {
   /** Current user's role */

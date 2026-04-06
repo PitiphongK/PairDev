@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 
-import LiveCursor from '@/app/components/LiveCursor'
-import type { AwarenessEntry } from '@/app/interfaces/editor'
+import LiveCursor from '@/components/LiveCursor'
+import type { AwarenessEntry } from '@/interfaces/editor'
 
 interface LiveCursorsProps {
   /** List of user states with their awareness data */

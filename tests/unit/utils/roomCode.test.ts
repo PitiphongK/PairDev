@@ -3,7 +3,7 @@ import {
   generateRoomCode,
   isValidRoomCode,
   normalizeRoomCode,
-} from '@/app/utils/roomCode'
+} from '@/utils/roomCode'
 import { describe, expect, it } from 'vitest'
 
 describe('roomCode utils', () => {

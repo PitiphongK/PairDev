@@ -30,7 +30,7 @@ vi.mock('@/app/utils/randomName', () => ({
   generateRandomUserName: mockGenerateRandomUserName,
 }))
 
-import { useRoomLanding } from '@/app/hooks/useRoomLanding'
+import { useRoomLanding } from '@/hooks/useRoomLanding'
 
 describe('useRoomLanding', () => {
   beforeEach(() => {
