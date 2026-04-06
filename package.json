@@ -14,7 +14,8 @@
     "lint": "eslint",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@heroui/button": "^2.2.32",
