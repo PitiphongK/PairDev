@@ -18,6 +18,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.11.1",
     "@heroui/button": "^2.2.32",
     "@heroui/input": "^2.4.33",
     "@heroui/react": "^2.8.10",
@@ -37,6 +38,7 @@
     "mongodb": "^7.1.1",
     "nanoid": "^5.1.7",
     "next": "16.1.1",
+    "next-auth": "5.0.0-beta.30",
     "next-themes": "^0.4.6",
     "perfect-freehand": "^1.2.3",
     "react": "19.2.0",
@@ -87,6 +89,9 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
+    ],
+    "ignoredBuiltDependencies": [
+      "@prisma/client"
     ]
   }
 }
