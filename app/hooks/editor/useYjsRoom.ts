@@ -18,11 +18,11 @@ import {
   STORAGE_KEYS,
   YJS_KEYS,
   YJS_WEBSOCKET_URL,
-} from '@/app/constants/editor'
-import type { AwarenessRole } from '@/app/interfaces/awareness'
-import type { AwarenessEntry, ProviderWithSyncedEvents } from '@/app/interfaces/editor'
-import { Languages } from '@/app/interfaces/languages'
-import { generateRandomColor } from '@/app/utils/editor'
+} from '@/constants/editor'
+import type { AwarenessRole } from '@/interfaces/awareness'
+import type { AwarenessEntry, ProviderWithSyncedEvents } from '@/interfaces/editor'
+import { Languages } from '@/interfaces/languages'
+import { generateRandomColor } from '@/utils/editor'
 
 // ---------------------------------------------------------------------------
 // Local helpers

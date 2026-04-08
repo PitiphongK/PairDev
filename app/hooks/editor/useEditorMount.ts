@@ -10,8 +10,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { WebsocketProvider } from 'y-websocket'
 import type * as Y from 'yjs'
 
-import { YJS_KEYS } from '@/app/constants/editor'
-import type { AwarenessRole } from '@/app/interfaces/awareness'
+import { YJS_KEYS } from '@/constants/editor'
+import type { AwarenessRole } from '@/interfaces/awareness'
 
 // ---------------------------------------------------------------------------
 // Types
