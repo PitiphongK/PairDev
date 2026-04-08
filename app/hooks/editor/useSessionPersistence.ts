@@ -15,6 +15,8 @@ import type * as Y from 'yjs'
 import { YJS_KEYS } from '@/constants/editor'
 import type { Session as PrismaSession } from '@/generated/prisma'
 
+const AUTO_SAVE_DEBOUNCE_MS = 3000
+
 interface UseSessionPersistenceOptions {
   roomId: string
   providerSynced: boolean
@@ -31,7 +33,9 @@ export function useSessionPersistence({
   const { data: authSession } = useSession()
   const sessionIdRef = useRef<string | null>(null)
   const hasCalled = useRef(false)
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Create session once when provider syncs and user is authenticated
   useEffect(() => {
     if (!providerSynced) return
     if (!authSession?.user?.id) return
@@ -62,6 +66,50 @@ export function useSessionPersistence({
 
     createSession()
   }, [providerSynced, authSession?.user?.id, roomId, ydocRef, isOwner])
+
+  // Auto-save on code or stroke changes, debounced by 3s
+  useEffect(() => {
+    if (!providerSynced) return
+    if (!authSession?.user?.id) return
+    if (!ydocRef.current) return
+
+    const ydoc = ydocRef.current
+    const monacoText = ydoc.getText(YJS_KEYS.MONACO_TEXT)
+    const strokesArray = ydoc.getArray(YJS_KEYS.STROKES)
+
+    function scheduleAutoSave() {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+
+      debounceTimerRef.current = setTimeout(async () => {
+        const id = sessionIdRef.current
+        if (!id || !ydocRef.current) return
+
+        const doc = ydocRef.current
+        const code = doc.getText(YJS_KEYS.MONACO_TEXT).toString()
+        const language = (doc.getMap(YJS_KEYS.ROOM).get('language') as string) ?? 'javascript'
+        const strokes = doc.getArray(YJS_KEYS.STROKES).toArray()
+
+        try {
+          await fetch(`/api/session/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, language, strokes }),
+          })
+        } catch {
+          // Silent — never block the editor
+        }
+      }, AUTO_SAVE_DEBOUNCE_MS)
+    }
+
+    monacoText.observe(scheduleAutoSave)
+    strokesArray.observe(scheduleAutoSave)
+
+    return () => {
+      monacoText.unobserve(scheduleAutoSave)
+      strokesArray.unobserve(scheduleAutoSave)
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+    }
+  }, [providerSynced, authSession?.user?.id, ydocRef])
 
   return { sessionIdRef }
 }
