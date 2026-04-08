@@ -1,7 +1,8 @@
 /*
 
 Create a session (Session, UserSession) once, when the Yjs provider
-has synced and the user is authenticated.
+has synced and the user is authenticated. Then enable auto-save
+for the session.
 
 The hasCalled ref enforces the "once" — even if providerSynced flips back and forth, 
 the session is only created on the first time all conditions are met.
