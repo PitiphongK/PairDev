@@ -11,7 +11,7 @@ const { redisMock } = vi.hoisted(() => ({
   },
 }))
 
-vi.mock('@/app/lib/redis/client', () => ({
+vi.mock('@/lib/redis/client', () => ({
   getRedis: vi.fn(async () => redisMock),
 }))
 

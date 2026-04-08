@@ -2,7 +2,7 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { TerminalManager } from '@/server/terminal'
+import { TerminalManager } from '../../../server/terminal'
 
 function makeIoMock() {
   const emit = vi.fn()

@@ -58,9 +58,10 @@ model VerificationToken {
 model Session {
   id           String        @id @default(auto()) @map("_id") @db.ObjectId
   roomId       String
+  name         String        @default("") // shared session name, owner can rename
   code         String
   language     String
-  strokes      Json // Y.Array<Stroke>.toArray() serialized
+  strokes      Json          // Y.Array<Stroke>.toArray() serialized
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   participants UserSession[]
@@ -70,7 +71,6 @@ model UserSession {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String   @db.ObjectId
   sessionId String   @db.ObjectId
-  name      String
   isOwner   Boolean  @default(false)
   forgotten Boolean  @default(false)
   createdAt DateTime @default(now())

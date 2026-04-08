@@ -46,6 +46,7 @@ import {
   usePanelLayout,
   useRoleNotice,
   useSessionAnalytics,
+  useSessionPersistence,
 } from '@/hooks/editor'
 import { useMonacoFollowScroll } from '@/hooks/useMonacoFollowScroll'
 import type { AwarenessRole } from '@/interfaces/awareness'
@@ -286,6 +287,13 @@ export default function EditorClient({ roomId }: EditorClientProps) {
   } = useRoleNotice({
     myRole,
     providerSynced,
+  })
+
+  const { sessionIdRef } = useSessionPersistence({
+    roomId,
+    providerSynced,
+    ydocRef,
+    isOwner,
   })
 
   // ============================================================================

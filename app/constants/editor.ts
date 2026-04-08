@@ -58,6 +58,8 @@ export const YJS_KEYS = {
   PANELS: 'panels',
   /** Analytics data map */
   ANALYTICS: 'analytics',
+  /** Drawing strokes array */
+  STROKES: 'strokes',
 } as const
 
 /** Keys within the room map */

@@ -26,7 +26,7 @@ vi.mock('@heroui/toast', () => ({
   addToast: mockAddToast,
 }))
 
-vi.mock('@/app/utils/randomName', () => ({
+vi.mock('@/utils/randomName', () => ({
   generateRandomUserName: mockGenerateRandomUserName,
 }))
 
