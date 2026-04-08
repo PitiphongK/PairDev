@@ -31,8 +31,15 @@ interface UseSessionAnalyticsOptions {
 }
 
 interface UseSessionAnalyticsReturn {
-  /** Start the session timer */
-  startSession: () => void
+  /**
+   * Start the session timer.
+   * @param initialRole - The role to record as the starting role. When called
+   *   from useYjsRoom's onInitialRole callback the role is known before React
+   *   re-renders, so pass it explicitly to avoid using a stale closure value.
+   */
+  startSession: (initialRole?: AwarenessRole) => void
+  /** Reset all session tracking refs (called by useYjsRoom on cleanup). */
+  resetAnalytics: () => void
   /** Publish current user's role totals to the shared map */
   publishMyRoleTotals: (now: number) => void
   /** Compute session summary at a given time */
@@ -68,15 +75,25 @@ export function useSessionAnalytics({
   })
 
   // Start session timer
-  const startSession = useCallback(() => {
-    if (sessionStartRef.current == null) {
-      sessionStartRef.current = Date.now()
-      roleSinceRef.current = {
-        role: myRole,
-        startedAt: sessionStartRef.current,
+  const startSession = useCallback(
+    (initialRole?: AwarenessRole) => {
+      if (sessionStartRef.current == null) {
+        sessionStartRef.current = Date.now()
+        roleSinceRef.current = {
+          role: initialRole ?? myRole,
+          startedAt: sessionStartRef.current,
+        }
       }
-    }
-  }, [myRole])
+    },
+    [myRole]
+  )
+
+  // Reset all tracking state — called by useYjsRoom when the room tears down
+  const resetAnalytics = useCallback(() => {
+    sessionStartRef.current = null
+    roleSinceRef.current = null
+    roleTotalsRef.current = { driver: 0, navigator: 0, none: 0 }
+  }, [])
 
   // Track time spent in each role when role changes
   useEffect(() => {
@@ -238,6 +255,7 @@ export function useSessionAnalytics({
 
   return {
     startSession,
+    resetAnalytics,
     publishMyRoleTotals,
     computeSessionSummaryNow,
     computeTeamContributionNow,
