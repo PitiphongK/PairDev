@@ -1,3 +1,12 @@
+/*
+
+Create a session (Session, UserSession) once, when the Yjs provider
+has synced and the user is authenticated.
+
+The hasCalled ref enforces the "once" — even if providerSynced flips back and forth, 
+the session is only created on the first time all conditions are met.
+
+*/
 import { useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import type * as Y from 'yjs'
