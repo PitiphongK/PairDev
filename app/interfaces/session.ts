@@ -6,3 +6,9 @@ export interface CreateSessionRequest {
   language: string
   strokes: Prisma.InputJsonValue
 }
+
+export interface PatchSessionRequest {
+  code: string
+  language: string
+  strokes: Prisma.InputJsonValue
+}
