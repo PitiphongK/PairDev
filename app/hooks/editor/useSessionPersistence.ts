@@ -59,6 +59,25 @@ export function useSessionPersistence({
         if (!res.ok) throw new Error(`Failed to create session: ${res.status}`)
         const data: { session: PrismaSession } = await res.json()
         sessionIdRef.current = data.session.id
+
+        // Restore saved content into Y.Doc if the doc is currently empty.
+        // Only applies when refreshing alone — if other users are active,
+        // the Yjs server already has live content and Y.Text won't be empty.
+        // Always restore from DB — DB is source of truth, Yjs server is ephemeral.
+        // Delete any stale Yjs server content and replace with the saved version.
+        const doc = ydocRef.current
+        if (!doc) return
+        doc.transact(() => {
+          const liveText = doc.getText(YJS_KEYS.MONACO_TEXT)
+          liveText.delete(0, liveText.length)
+          if (data.session.code) liveText.insert(0, data.session.code)
+
+          const liveStrokes = doc.getArray(YJS_KEYS.STROKES)
+          liveStrokes.delete(0, liveStrokes.length)
+          if (Array.isArray(data.session.strokes) && data.session.strokes.length > 0) {
+            liveStrokes.push(data.session.strokes)
+          }
+        })
       } catch (e) {
         console.error('useSessionPersistence: failed to create session', e)
       }
@@ -90,13 +109,14 @@ export function useSessionPersistence({
         const strokes = doc.getArray(YJS_KEYS.STROKES).toArray()
 
         try {
-          await fetch(`/api/session/${id}`, {
+          const res = await fetch(`/api/session/${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code, language, strokes }),
           })
-        } catch {
-          // Silent — never block the editor
+          if (!res.ok) console.error('[AutoSave] PATCH failed:', res.status)
+        } catch (e) {
+          console.error('[AutoSave] fetch error:', e)
         }
       }, AUTO_SAVE_DEBOUNCE_MS)
     }
