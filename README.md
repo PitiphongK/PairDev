@@ -130,3 +130,4 @@ The Next.js frontend is deployed on Vercel. You will need to configure the follo
 *   `GLOT_API_TOKEN`: Your API token from [glot.io](https://glot.io/).
 *   `NEXT_PUBLIC_YJS_WEBSOCKET_URL`: The public URL of your Yjs server deployed on Render.
 *   `NEXT_PUBLIC_SOCKET_URL`: The public URL of your Terminal server deployed on Render.
+# Test
